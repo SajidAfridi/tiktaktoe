@@ -6,8 +6,9 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
+
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
@@ -52,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void initializeBoard() {
     gameBoard =
-        List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
+    List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
   }
 
   bool isSnackbarVisible = false;
@@ -88,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        isEasyMode ? Colors.greenAccent : Colors.white70,
+                    isEasyMode ? Colors.greenAccent : Colors.white70,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -110,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        isMediumMode ? Colors.greenAccent : Colors.white70,
+                    isMediumMode ? Colors.greenAccent : Colors.white70,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -132,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        isHardMode ? Colors.greenAccent : Colors.white70,
+                    isHardMode ? Colors.greenAccent : Colors.white70,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -160,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Text(
                       'Human Player',
                       style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -187,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Text(
                       'AI Player',
                       style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
