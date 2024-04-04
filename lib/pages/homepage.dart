@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -11,6 +12,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
   late bool isPlayer1;
+  bool isProcessingMove = false;
+  bool isEasyMode = false;
+  bool isMediumMode = false;
+  bool isHardMode = true;
+  bool isCheated = false;
+
   late AnimationController _symbolAnimationController;
   late Animation<double> _symbolAnimation;
   late AnimationController _winAnimationController;
@@ -44,35 +51,213 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void initializeBoard() {
-    gameBoard = List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
+    gameBoard =
+        List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
   }
+
+  bool isSnackbarVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tic Tac Toe'),
+        title: const Text(
+          'Tic Tac Toe',
+          style: TextStyle(
+              color: Colors.greenAccent,
+              fontWeight: FontWeight.bold,
+              fontSize: 50),
+        ),
+        centerTitle: true,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isEasyMode = true;
+                      isMediumMode = false;
+                      isHardMode = false;
+                      isProcessingMove = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isEasyMode ? Colors.greenAccent : Colors.white70,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Easy',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isEasyMode = false;
+                      isMediumMode = true;
+                      isHardMode = false;
+                      isProcessingMove = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isMediumMode ? Colors.greenAccent : Colors.white70,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Medium',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isEasyMode = false;
+                      isMediumMode = false;
+                      isHardMode = true;
+                      isProcessingMove = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isHardMode ? Colors.greenAccent : Colors.white70,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Hard',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      radius: 32,
+                      child: Icon(Icons.person, size: 32),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Human Player',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Text(
+                    "VS",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      radius: 32,
+                      child: Icon(Icons.android, size: 32),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'AI Player',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[200],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-              itemBuilder: (context, index) {
-                final rowIndex = index ~/ 3;
-                final colIndex = index % 3;
-                final cellValue = gameBoard[rowIndex][colIndex];
-                return buildGridCell(rowIndex, colIndex, cellValue);
-              },
-              itemCount: 9,
+            ),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[200],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(4),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 5,
+                  mainAxisSpacing: 5,
+                ),
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  final rowIndex = index ~/ 3;
+                  final colIndex = index % 3;
+                  final cellValue = gameBoard[rowIndex][colIndex];
+                  return buildGridCell(rowIndex, colIndex, cellValue);
+                },
+                itemCount: 9,
+              ),
+            ),
+            const SizedBox(
+              height: 8,
             ),
             ElevatedButton(
-              onPressed: resetGame,
-              child: const Text('Reset'),
+              onPressed: () {
+                resetGame();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Reset Game',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -81,39 +266,64 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
+    bool isWinningMove = cellValue.endsWith('_win');
     return GestureDetector(
       onTap: () {
-        if (cellValue.isEmpty) {
+        if (cellValue.isEmpty && !isProcessingMove) {
           setState(() {
+            isProcessingMove = true;
             if (isPlayer1) {
               gameBoard[rowIndex][colIndex] = 'X';
               isPlayer1 = false;
             }
-            checkWin();
-            if (!isPlayer1) {
-              aiMove();
-            }
           });
+          aiMove(); // Move this call outside the setState block
+          checkWin(); // Move this call outside the setState block
         }
       },
+      onScaleStart: (details) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Don\'t Cheat'),
+          ),
+        );
+        if (kDebugMode) {
+          print(details);
+        }
+        setState(() {
+          isCheated = true;
+        });
+      },
       child: AnimatedBuilder(
-        animation: _symbolAnimationController,
+        animation: _symbolAnimation,
         builder: (context, child) {
           return Transform.scale(
-            scale: _symbolAnimation.value,
+            scale: isWinningMove ? 0.9 : 0.8,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                border: Border.all(
-                  color: Colors.black,
-                  width: 2.0,
-                ),
+                color: isWinningMove ? Colors.green : Colors.blue,
+                // Customize the background color
+                borderRadius: isWinningMove
+                    ? BorderRadius.circular(4)
+                    : BorderRadius.circular(8),
+                // Add rounded corners
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    // Add a subtle shadow
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(
-                  cellValue,
+                  cellValue.replaceAll('_win', ''),
                   style: const TextStyle(
                     fontSize: 48.0,
+                    color: Colors.white, // Customize the text color
+                    fontWeight: FontWeight.bold, // Make the text bold
                   ),
                 ),
               ),
@@ -171,10 +381,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (winner.isNotEmpty) {
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (_) => AlertDialog(
-          title: const Text('Game Over'),
-          content: Text('$winner wins!'),
+          title: const Text(
+            'Game Over',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '$winner wins!',
+            style: const TextStyle(fontSize: 16),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -189,10 +408,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     } else if (isBoardFull()) {
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (_) => AlertDialog(
-          title: const Text('Game Over'),
-          content: const Text('It\'s a tie!'),
+          title: const Text(
+            'Game Over',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'It\'s a draw!',
+            style: TextStyle(fontSize: 16),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -208,10 +436,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void animateWin(int row1, int col1, int row2, int col2, int row3, int col3) {
-    final winAnimation = CurvedAnimation(
-      parent: _winAnimationController,
-      curve: Curves.easeOut,
-    );
     _winAnimationController.reset();
     _winAnimationController.forward();
     gameBoard[row1][col1] += '_win';
@@ -234,34 +458,127 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       initializeBoard();
       isPlayer1 = true;
+      isProcessingMove = false;
+      isCheated = false;
     });
   }
 
   void aiMove() {
-    // Find the best move using the Minimax algorithm
-    int bestScore = -9999;
-    int bestRow = -1;
-    int bestCol = -1;
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        if (gameBoard[i][j].isEmpty) {
-          gameBoard[i][j] = 'O';
-          int score = minimax(gameBoard, 0, false);
-          gameBoard[i][j] = '';
-          if (score > bestScore) {
-            bestScore = score;
-            bestRow = i;
-            bestCol = j;
+    int countEmptyCells() {
+      int count = 0;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (gameBoard[i][j] == '') {
+            count++;
           }
         }
       }
+      return count;
     }
 
-    // Make the AI move
-    gameBoard[bestRow][bestCol] = 'O';
+    if (isEasyMode) {
+      Random random = Random();
+      int emptyCells = countEmptyCells();
+      int randomIndex = random.nextInt(emptyCells);
+      int count = 0;
+      outerLoop:
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (gameBoard[i][j].isEmpty) {
+            if (count == randomIndex) {
+              gameBoard[i][j] = 'O';
+              break outerLoop;
+            }
+            count++;
+          }
+        }
+      }
+      isProcessingMove = false;
+      isPlayer1 = true;
+    } else if (isMediumMode) {
+      int emptyCells = countEmptyCells();
+      List<int> availableMoves = [];
+      for (int i = 0; i < 9; i++) {
+        int row = i ~/ 3;
+        int col = i % 3;
+        if (gameBoard[row][col].isEmpty) {
+          availableMoves.add(i);
+        }
+      }
 
-    // Update the turn
-    isPlayer1 = true;
+      // Check for winning moves
+      for (int move in availableMoves) {
+        int row = move ~/ 3;
+        int col = move % 3;
+        gameBoard[row][col] = 'O';
+        if (checkWinningMove('O')) {
+          isPlayer1 = true;
+          return;
+        }
+        gameBoard[row][col] = '';
+      }
+
+      // Check for blocking moves
+      for (int move in availableMoves) {
+        int row = move ~/ 3;
+        int col = move % 3;
+        gameBoard[row][col] = 'X';
+        if (checkWinningMove('X')) {
+          gameBoard[row][col] = 'O';
+          isProcessingMove = false;
+          isPlayer1 = true;
+          return;
+        }
+        gameBoard[row][col] = '';
+      }
+
+      // If no winning or blocking moves, choose a random move
+      Random random = Random();
+      int randomIndex = random.nextInt(emptyCells);
+      int count = 0;
+
+      outerLoop:
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (gameBoard[i][j].isEmpty) {
+            if (count == randomIndex) {
+              gameBoard[i][j] = 'O';
+              break outerLoop;
+            }
+            count++;
+          }
+        }
+      }
+      isProcessingMove = false;
+      // Update the turn
+      isPlayer1 = true;
+    } else if (isHardMode) {
+      int bestScore = -9999;
+      int bestRow = -1;
+      int bestCol = -1;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (gameBoard[i][j].isEmpty) {
+            gameBoard[i][j] = 'O';
+            int score = minimax(gameBoard, 0, false);
+            gameBoard[i][j] = '';
+            if (score > bestScore) {
+              bestScore = score;
+              bestRow = i;
+              bestCol = j;
+            }
+          }
+        }
+      }
+
+      // Make the AI move
+      gameBoard[bestRow][bestCol] = 'O';
+
+      isProcessingMove = false;
+      // Update the turn
+      isPlayer1 = true;
+    }
+    // Find the best move using the Minimax algorithm
   }
 
   int minimax(List<List<String>> board, int depth, bool isMaximizing) {
@@ -307,8 +624,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   int evaluate(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
-      if (board[row][0] == board[row][1] &&
-          board[row][1] == board[row][2]) {
+      if (board[row][0] == board[row][1] && board[row][1] == board[row][2]) {
         if (board[row][0] == 'O') {
           return 10;
         } else if (board[row][0] == 'X') {
@@ -318,8 +634,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 
     for (int col = 0; col < 3; col++) {
-      if (board[0][col] == board[1][col] &&
-          board[1][col] == board[2][col]) {
+      if (board[0][col] == board[1][col] && board[1][col] == board[2][col]) {
         if (board[0][col] == 'O') {
           return 10;
         } else if (board[0][col] == 'X') {
@@ -355,6 +670,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
       }
     }
+    return false;
+  }
+
+  bool checkWinningMove(String player) {
+    // Check rows
+    for (int row = 0; row < 3; row++) {
+      if (gameBoard[row][0] == player &&
+          gameBoard[row][1] == player &&
+          gameBoard[row][2] == player) {
+        return true;
+      }
+    }
+
+    // Check columns
+    for (int col = 0; col < 3; col++) {
+      if (gameBoard[0][col] == player &&
+          gameBoard[1][col] == player &&
+          gameBoard[2][col] == player) {
+        return true;
+      }
+    }
+
+    // Check diagonals
+    if (gameBoard[0][0] == player &&
+        gameBoard[1][1] == player &&
+        gameBoard[2][2] == player) {
+      return true;
+    }
+
+    if (gameBoard[2][0] == player &&
+        gameBoard[1][1] == player &&
+        gameBoard[0][2] == player) {
+      return true;
+    }
+
     return false;
   }
 }
