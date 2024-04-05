@@ -23,7 +23,9 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
         ),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 50),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 50,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

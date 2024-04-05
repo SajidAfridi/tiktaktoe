@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -5,12 +6,16 @@ class MyHomePage extends StatefulWidget {
   final bool isEasyMode;
   final bool isMediumMode;
   final bool isHardMode;
-  const MyHomePage({super.key, required this.isEasyMode, required this.isMediumMode, required this.isHardMode});
+
+  const MyHomePage(
+      {super.key,
+      required this.isEasyMode,
+      required this.isMediumMode,
+      required this.isHardMode});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
@@ -51,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void initializeBoard() {
     gameBoard =
-    List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
+        List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
   }
 
   bool isSnackbarVisible = false;
@@ -59,16 +64,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Tic Tac Toe',
-          style: TextStyle(
-              color: Colors.greenAccent,
-              fontWeight: FontWeight.bold,
-              fontSize: 50),
-        ),
-        centerTitle: true,
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -89,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Text(
                       'Human Player',
                       style:
-                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -116,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Text(
                       'AI Player',
                       style:
-                      TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -128,29 +123,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.grey[200],
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.grey[200],
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                color: Colors.white,
               ),
               padding: const EdgeInsets.all(4),
               child: GridView.builder(
@@ -171,21 +144,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(
-              height: 8,
+              height: 30,
             ),
-            ElevatedButton(
-              onPressed: () {
-                resetGame();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: () {
+                    resetGame();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.refresh,
+                      ),
+                      SizedBox(width: 20),
+                      Text(
+                        'Reset Game',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Reset Game',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -217,29 +210,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             scale: isWinningMove ? 0.9 : 0.8,
             child: Container(
               decoration: BoxDecoration(
-                color: isWinningMove ? Colors.green : Colors.blue,
-                // Customize the background color
-                borderRadius: isWinningMove
-                    ? BorderRadius.circular(4)
-                    : BorderRadius.circular(8),
-                // Add rounded corners
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    // Add a subtle shadow
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                color: isWinningMove ? Colors.green : Colors.grey[200],
               ),
               child: Center(
                 child: Text(
                   cellValue.replaceAll('_win', ''),
                   style: const TextStyle(
                     fontSize: 48.0,
-                    color: Colors.white, // Customize the text color
-                    fontWeight: FontWeight.bold, // Make the text bold
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -495,6 +474,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     // Find the best move using the Minimax algorithm
   }
+
   int minimax(List<List<String>> board, int depth, bool isMaximizing) {
     int score = evaluate(board);
     if (score == 10) {
@@ -535,6 +515,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return bestScore;
     }
   }
+
   int evaluate(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
       if (board[row][0] == board[row][1] && board[row][1] == board[row][2]) {
@@ -574,6 +555,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return 0;
   }
+
   bool isMovesLeft(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
@@ -584,6 +566,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     return false;
   }
+
   bool checkWinningMove(String player) {
     // Check rows
     for (int row = 0; row < 3; row++) {
