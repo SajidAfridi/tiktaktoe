@@ -1,9 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  final bool isEasyMode;
+  final bool isMediumMode;
+  final bool isHardMode;
+  const MyHomePage({super.key, required this.isEasyMode, required this.isMediumMode, required this.isHardMode});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -14,10 +16,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
   late bool isPlayer1;
   bool isProcessingMove = false;
-  bool isEasyMode = false;
-  bool isMediumMode = false;
-  bool isHardMode = true;
-  bool isCheated = false;
 
   late AnimationController _symbolAnimationController;
   late Animation<double> _symbolAnimation;
@@ -75,76 +73,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isEasyMode = true;
-                      isMediumMode = false;
-                      isHardMode = false;
-                      isProcessingMove = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    isEasyMode ? Colors.greenAccent : Colors.white70,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Easy',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isEasyMode = false;
-                      isMediumMode = true;
-                      isHardMode = false;
-                      isProcessingMove = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    isMediumMode ? Colors.greenAccent : Colors.white70,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Medium',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isEasyMode = false;
-                      isMediumMode = false;
-                      isHardMode = true;
-                      isProcessingMove = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    isHardMode ? Colors.greenAccent : Colors.white70,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Hard',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -281,19 +209,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           aiMove(); // Move this call outside the setState block
           checkWin(); // Move this call outside the setState block
         }
-      },
-      onScaleStart: (details) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Don\'t Cheat'),
-          ),
-        );
-        if (kDebugMode) {
-          print(details);
-        }
-        setState(() {
-          isCheated = true;
-        });
       },
       child: AnimatedBuilder(
         animation: _symbolAnimation,
@@ -460,7 +375,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       initializeBoard();
       isPlayer1 = true;
       isProcessingMove = false;
-      isCheated = false;
     });
   }
 
@@ -477,7 +391,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return count;
     }
 
-    if (isEasyMode) {
+    if (widget.isEasyMode) {
       Random random = Random();
       int emptyCells = countEmptyCells();
       int randomIndex = random.nextInt(emptyCells);
@@ -496,7 +410,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
       isProcessingMove = false;
       isPlayer1 = true;
-    } else if (isMediumMode) {
+    } else if (widget.isMediumMode) {
       int emptyCells = countEmptyCells();
       List<int> availableMoves = [];
       for (int i = 0; i < 9; i++) {
@@ -553,7 +467,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isProcessingMove = false;
       // Update the turn
       isPlayer1 = true;
-    } else if (isHardMode) {
+    } else if (widget.isHardMode) {
       int bestScore = -9999;
       int bestRow = -1;
       int bestCol = -1;
@@ -581,7 +495,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     // Find the best move using the Minimax algorithm
   }
-
   int minimax(List<List<String>> board, int depth, bool isMaximizing) {
     int score = evaluate(board);
     if (score == 10) {
@@ -622,7 +535,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return bestScore;
     }
   }
-
   int evaluate(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
       if (board[row][0] == board[row][1] && board[row][1] == board[row][2]) {
@@ -662,7 +574,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return 0;
   }
-
   bool isMovesLeft(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
@@ -673,7 +584,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     return false;
   }
-
   bool checkWinningMove(String player) {
     // Check rows
     for (int row = 0; row < 3; row++) {
