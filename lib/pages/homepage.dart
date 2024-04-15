@@ -1,3 +1,4 @@
+import 'package:action_slider/action_slider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -86,39 +87,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             const SizedBox(
               height: 30,
             ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.75,
-              height: 60,
-              child: OutlinedButton(
-                onPressed: () {
-                  resetGame();
-                },
-                style: OutlinedButton.styleFrom(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
+            Container(
+                width: MediaQuery.of(context).size.width * 0.70,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white,
+                ),
+                child: ActionSlider.standard(
+                  action: (controller) {
+                    controller.reset();
+                    resetGame();
+                  },
+                  icon: const Icon(
+                    Icons.refresh,
+                    color: Colors.white,
+                    size: 30,
                   ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.refresh,
+                  toggleColor: Colors.blue,
+                  child: const Text(
+                    'Reset Game',
+                    style: TextStyle(
                       color: Colors.black,
+                      fontSize: 24,
+                      fontFamily: 'PermanentMarker',
                     ),
-                    SizedBox(width: 40),
-                    Text(
-                      'Reset Game',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                )),
           ],
         ),
       ),
@@ -136,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               isPlayer1 = false;
             }
           });
-          if(isBoardFull()){
+          if (isBoardFull()) {
             checkWin();
           }
           aiMove();
@@ -321,8 +315,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
       isProcessingMove = false;
       isPlayer1 = true;
-    }
-    else if (widget.isMediumMode) {
+    } else if (widget.isMediumMode) {
       int emptyCells = countEmptyCells();
       List<int> availableMoves = [];
       for (int i = 0; i < 9; i++) {
@@ -382,8 +375,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isProcessingMove = false;
       // Update the turn
       isPlayer1 = true;
-    }
-    else if (widget.isHardMode) {
+    } else if (widget.isHardMode) {
       int bestScore = -9999;
       int bestRow = -1;
       int bestCol = -1;

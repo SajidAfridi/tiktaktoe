@@ -33,6 +33,7 @@ dependencies:
   awesome_dialog:
   audioplayers:
   animate_do:
+  action_slider: ^0.7.0
 
 
   # The following adds the Cupertino Icons font to your application.
