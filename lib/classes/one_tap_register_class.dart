@@ -39,7 +39,7 @@ class OnlyOnePointerRecognizer extends OneSequenceGestureRecognizer {
 class OnlyOnePointerRecognizerWidget extends StatelessWidget {
   final Widget? child;
 
-  OnlyOnePointerRecognizerWidget({ this.child });
+  const OnlyOnePointerRecognizerWidget({super.key,  this.child });
 
   @override
   Widget build(BuildContext context) {

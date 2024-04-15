@@ -1,17 +1,22 @@
-import 'package:flutter/cupertino.dart';
+import 'package:animate_do/animate_do.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:tiktaktoe/classes/game_logic.dart';
 import 'dart:math';
+import '../classes/one_tap_register_class.dart';
+import '../widgets/who_vs_who_widget.dart';
 
 class MyHomePage extends StatefulWidget {
   final bool isEasyMode;
   final bool isMediumMode;
   final bool isHardMode;
 
-  const MyHomePage(
-      {super.key,
-      required this.isEasyMode,
-      required this.isMediumMode,
-      required this.isHardMode});
+  const MyHomePage({
+    super.key,
+    required this.isEasyMode,
+    required this.isMediumMode,
+    required this.isHardMode,
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -22,44 +27,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late bool isPlayer1;
   bool isProcessingMove = false;
 
-  late AnimationController _symbolAnimationController;
-  late Animation<double> _symbolAnimation;
-  late AnimationController _winAnimationController;
-
   @override
   void initState() {
     super.initState();
     initializeBoard();
     isPlayer1 = true;
-    _symbolAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _symbolAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _symbolAnimationController,
-        curve: Curves.easeOut,
-      ),
-    );
-    _winAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-  }
-
-  @override
-  void dispose() {
-    _symbolAnimationController.dispose();
-    _winAnimationController.dispose();
-    super.dispose();
   }
 
   void initializeBoard() {
-    gameBoard =
-        List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
+    gameBoard = List<List<String>>.generate(
+      3,
+      (_) => List<String>.filled(
+        3,
+        '',
+      ),
+    );
   }
 
-  bool isSnackbarVisible = false;
+  bool isSnackBarVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -69,54 +54,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      radius: 32,
-                      child: Icon(Icons.person, size: 32),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Human Player',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14),
-                  child: Text(
-                    "VS",
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      radius: 32,
-                      child: Icon(Icons.android, size: 32),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'AI Player',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            const RoundInfoWidget(),
             const SizedBox(
               height: 16,
             ),
@@ -126,58 +64,58 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 color: Colors.white,
               ),
               padding: const EdgeInsets.all(4),
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 5,
-                  mainAxisSpacing: 5,
+              child: OnlyOnePointerRecognizerWidget(
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 5,
+                    mainAxisSpacing: 5,
+                  ),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    final rowIndex = index ~/ 3;
+                    final colIndex = index % 3;
+                    final cellValue = gameBoard[rowIndex][colIndex];
+                    return buildGridCell(rowIndex, colIndex, cellValue);
+                  },
+                  itemCount: 9,
                 ),
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  final rowIndex = index ~/ 3;
-                  final colIndex = index % 3;
-                  final cellValue = gameBoard[rowIndex][colIndex];
-                  return buildGridCell(rowIndex, colIndex, cellValue);
-                },
-                itemCount: 9,
               ),
             ),
             const SizedBox(
               height: 30,
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: 50,
-                child: OutlinedButton(
-                  onPressed: () {
-                    resetGame();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.75,
+              height: 60,
+              child: OutlinedButton(
+                onPressed: () {
+                  resetGame();
+                },
+                style: OutlinedButton.styleFrom(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.refresh,
+                      color: Colors.black,
                     ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.refresh,
+                    SizedBox(width: 40),
+                    Text(
+                      'Reset Game',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                      SizedBox(width: 20),
-                      Text(
-                        'Reset Game',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -188,7 +126,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
-    bool isWinningMove = cellValue.endsWith('_win');
     return GestureDetector(
       onTap: () {
         if (cellValue.isEmpty && !isProcessingMove) {
@@ -199,34 +136,63 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               isPlayer1 = false;
             }
           });
-          aiMove(); // Move this call outside the setState block
-          checkWin(); // Move this call outside the setState block
+          if(isBoardFull()){
+            checkWin();
+          }
+          aiMove();
+          checkWin();
+        } else {
+          checkWin();
         }
       },
-      child: AnimatedBuilder(
-        animation: _symbolAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: isWinningMove ? 0.9 : 0.8,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isWinningMove ? Colors.green : Colors.grey[200],
-              ),
-              child: Center(
-                child: Text(
-                  cellValue.replaceAll('_win', ''),
-                  style: const TextStyle(
-                    fontSize: 48.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+      child: Card(child: iconDecider(cellValue)),
     );
+  }
+
+  Widget iconDecider(String value) {
+    //bool isWinningMove = value.endsWith('_win');
+    if (value.replaceAll('_win', '') == 'X') {
+      return FadeOutUp(
+        duration: const Duration(milliseconds: 300),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.green,
+            boxShadow: const [],
+          ),
+          child: Image.asset(
+            'assets/images/cross.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else if (value.replaceAll('_win', '') == 'O') {
+      return FadeOutUp(
+        duration: const Duration(milliseconds: 300),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: const [],
+          ),
+          child: Image.asset(
+            'assets/images/circle_1.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return FadeOutUp(
+        duration: const Duration(milliseconds: 300),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: const [],
+          ),
+          child: const Center(child: Text('')),
+        ),
+      );
+    }
   }
 
   void checkWin() {
@@ -274,65 +240,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 
     if (winner.isNotEmpty) {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => AlertDialog(
-          title: const Text(
-            'Game Over',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            '$winner wins!',
-            style: const TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                resetGame();
-                Navigator.pop(context);
-              },
-              child: const Text('Play Again'),
-            ),
-          ],
-        ),
-      );
+      String who = winner == 'X' ? 'You' : 'AI';
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.bottomSlide,
+          title: '$who Won!',
+          desc: 'Play Again',
+          headerAnimationLoop: false,
+          btnOkOnPress: () {
+            resetGame();
+          }).show();
     } else if (isBoardFull()) {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => AlertDialog(
-          title: const Text(
-            'Game Over',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: const Text(
-            'It\'s a draw!',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                resetGame();
-                Navigator.pop(context);
-              },
-              child: const Text('Play Again'),
-            ),
-          ],
-        ),
-      );
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.warning,
+          animType: AnimType.bottomSlide,
+          title: 'Draw',
+          desc: 'Play again',
+          btnOkOnPress: () {
+            resetGame();
+          }).show();
     }
   }
 
   void animateWin(int row1, int col1, int row2, int col2, int row3, int col3) {
-    _winAnimationController.reset();
-    _winAnimationController.forward();
     gameBoard[row1][col1] += '_win';
     gameBoard[row2][col2] += '_win';
     gameBoard[row3][col3] += '_win';
@@ -357,7 +289,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  void aiMove() {
+  aiMove() {
     int countEmptyCells() {
       int count = 0;
       for (int i = 0; i < 3; i++) {
@@ -389,7 +321,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
       isProcessingMove = false;
       isPlayer1 = true;
-    } else if (widget.isMediumMode) {
+    }
+    else if (widget.isMediumMode) {
       int emptyCells = countEmptyCells();
       List<int> availableMoves = [];
       for (int i = 0; i < 9; i++) {
@@ -405,7 +338,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int row = move ~/ 3;
         int col = move % 3;
         gameBoard[row][col] = 'O';
-        if (checkWinningMove('O')) {
+        if (GameLogic().checkWinningMove(gameBoard, 'O')) {
           isPlayer1 = true;
           return;
         }
@@ -417,7 +350,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int row = move ~/ 3;
         int col = move % 3;
         gameBoard[row][col] = 'X';
-        if (checkWinningMove('X')) {
+        if (GameLogic().checkWinningMove(
+          gameBoard,
+          'X',
+        )) {
           gameBoard[row][col] = 'O';
           isProcessingMove = false;
           isPlayer1 = true;
@@ -446,7 +382,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isProcessingMove = false;
       // Update the turn
       isPlayer1 = true;
-    } else if (widget.isHardMode) {
+    }
+    else if (widget.isHardMode) {
       int bestScore = -9999;
       int bestRow = -1;
       int bestCol = -1;
@@ -464,15 +401,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           }
         }
       }
-
       // Make the AI move
       gameBoard[bestRow][bestCol] = 'O';
-
       isProcessingMove = false;
       // Update the turn
       isPlayer1 = true;
     }
-    // Find the best move using the Minimax algorithm
   }
 
   int minimax(List<List<String>> board, int depth, bool isMaximizing) {
@@ -483,7 +417,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (score == -10) {
       return score + depth;
     }
-    if (!isMovesLeft(board)) {
+    if (!isMovesLeft()) {
       return 0;
     }
 
@@ -556,49 +490,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return 0;
   }
 
-  bool isMovesLeft(List<List<String>> board) {
+  bool isMovesLeft() {
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
-        if (board[row][col].isEmpty) {
+        if (gameBoard[row][col].isEmpty) {
           return true;
         }
       }
     }
-    return false;
-  }
-
-  bool checkWinningMove(String player) {
-    // Check rows
-    for (int row = 0; row < 3; row++) {
-      if (gameBoard[row][0] == player &&
-          gameBoard[row][1] == player &&
-          gameBoard[row][2] == player) {
-        return true;
-      }
-    }
-
-    // Check columns
-    for (int col = 0; col < 3; col++) {
-      if (gameBoard[0][col] == player &&
-          gameBoard[1][col] == player &&
-          gameBoard[2][col] == player) {
-        return true;
-      }
-    }
-
-    // Check diagonals
-    if (gameBoard[0][0] == player &&
-        gameBoard[1][1] == player &&
-        gameBoard[2][2] == player) {
-      return true;
-    }
-
-    if (gameBoard[2][0] == player &&
-        gameBoard[1][1] == player &&
-        gameBoard[0][2] == player) {
-      return true;
-    }
-
     return false;
   }
 }

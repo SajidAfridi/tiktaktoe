@@ -119,4 +119,38 @@ class GameLogic {
     return true;
   }
 
+  bool checkWinningMove(gameBoard, String player) {
+    // Check rows
+    for (int row = 0; row < 3; row++) {
+      if (gameBoard[row][0] == player &&
+          gameBoard[row][1] == player &&
+          gameBoard[row][2] == player) {
+        return true;
+      }
+    }
+
+    // Check columns
+    for (int col = 0; col < 3; col++) {
+      if (gameBoard[0][col] == player &&
+          gameBoard[1][col] == player &&
+          gameBoard[2][col] == player) {
+        return true;
+      }
+    }
+
+    // Check diagonals
+    if (gameBoard[0][0] == player &&
+        gameBoard[1][1] == player &&
+        gameBoard[2][2] == player) {
+      return true;
+    }
+
+    if (gameBoard[2][0] == player &&
+        gameBoard[1][1] == player &&
+        gameBoard[0][2] == player) {
+      return true;
+    }
+
+    return false;
+  }
 }
