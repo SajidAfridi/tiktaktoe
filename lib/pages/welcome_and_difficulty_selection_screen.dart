@@ -1,5 +1,7 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:tiktaktoe/pages/homepage.dart';
+import 'package:tiktaktoe/pages/join_or_create_screen.dart';
 
 class SelectDifficultyScreen extends StatefulWidget {
   const SelectDifficultyScreen({super.key});
@@ -99,6 +101,17 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                 const SizedBox(
                   height: 20,
                 ),
+                buildButton('Play With\nFriends', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateOrJoinScreen(),
+                    ),
+                  );
+                }),
+                const SizedBox(
+                  height: 20,
+                ),
               ],
             ),
           ),
@@ -120,7 +133,6 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
           ),
         ),
         child: ListTile(
-          enabled: true,
           splashColor: colorDecider(text),
           leading: Container(
             height: 80,
@@ -137,13 +149,15 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
           title: Row(
             children: [
               const SizedBox(
-                width: 30,
+                width: 10,
               ),
-              Text(
+              AutoSizeText(
                 text,
+                maxLines: 3,
+                maxFontSize: 30,
+                minFontSize: 22,
                 style: const TextStyle(
                   fontFamily: 'PermanentMarker',
-                  fontSize: 30,
                   fontWeight: FontWeight.normal,
                 ),
               ),
@@ -162,6 +176,8 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
         return Colors.orange;
       case 'Hard':
         return Colors.red;
+      case 'Play With\nFriends':
+        return Colors.blue;
       default:
         return Colors.green;
     }

@@ -6,7 +6,6 @@ class GameLogic {
     List<List<String>>.generate(3, (_) => List<String>.filled(3, ''));
     return gameBoard;
   }
-
   static void checkWin(List<List<String>> gameBoard,context) {
     String winner = '';
     if (gameBoard[0][0] == gameBoard[0][1] &&
