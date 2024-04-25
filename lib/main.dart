@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
+
+import 'classes/multiplayer_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,13 +16,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tik Tak Toe - Smart',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => MultiplayerService('https://spiny-trite-breeze.glitch.me/')),
+      ],
+      child: MaterialApp(
+        title: 'TikTakToe',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const SelectDifficultyScreen(),
       ),
-      home: const SelectDifficultyScreen(),
     );
   }
 }

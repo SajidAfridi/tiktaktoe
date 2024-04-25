@@ -1,10 +1,9 @@
-import 'dart:convert';
-import 'dart:ffi';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../classes/online_player_class.dart';
 
 class CreateOrJoinScreen extends StatefulWidget {
   const CreateOrJoinScreen({super.key});
@@ -14,13 +13,34 @@ class CreateOrJoinScreen extends StatefulWidget {
 }
 
 class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
-  final _channel = WebSocketChannel.connect(
-      Uri.parse('wss://few-coconut-bonnet.glitch.me/'));
   String? receivedCode;
+
+  final IO.Socket socket = IO.io('https://spiny-trite-breeze.glitch.me/',IO.OptionBuilder()
+      .setTransports(['websocket']).setTimeout(20000)
+      .build());
+
+  @override
+  void initState() {
+    initSocket();
+    super.initState();
+  }
+
+  void initSocket() {
+    socket.connect();
+    socket.onConnectTimeout((data) => print('timeout: $data'));
+
+    socket.onConnect((_) {
+      print('Connection established');
+    });
+    socket.onDisconnect((_) => print('Disconnected'));
+    socket.onConnectError((err) => print(err));
+    socket.onError((err) => print(err));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -64,8 +84,28 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                   height: 40,
                 ),
                 buildButton('Create Room', () {
-                  codeReceiver();
-                  _showCodeDialog(context);
+                  // Emit message with room creation data
+                  createRoom();
+                  //Listen for server response about room creation
+                  socket.on('RoomCreated', (data) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => MultiplayerScreen(
+                      room: Room(
+                        // Extract details from server response (assuming data structure)
+                        code: data,
+                        player1: Player(symbol: 'X', move: '0'),
+                        // Player1 details
+                        player2: Player(symbol: '', move: '0'),
+                        // Player2 details
+                        turn:
+                        0, // Assuming it's not host's turn initially
+                      ),
+                      isHost: true,
+                    ),
+                    ),);
+                  });
                 }),
                 const SizedBox(
                   height: 20,
@@ -128,6 +168,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
       ),
     );
   }
+
   Color colorDecider(String difficultyText) {
     switch (difficultyText) {
       case 'Create Room':
@@ -138,6 +179,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
         return Colors.green;
     }
   }
+
   void _showJoinDialog(BuildContext context) {
     TextEditingController codeController = TextEditingController();
     showDialog(
@@ -157,11 +199,48 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              String code = codeController.text;
-              // Send join request with the entered code
-              _channel.sink
-                  .add(jsonEncode({'message': 'joinGame', 'code': code}));
-              Navigator.of(context).pop();
+              socket.emit('message', {
+                'type': 'join',
+                'code': int.parse(codeController.text),
+                'turn': 1,
+                'symbol': 'O',
+                'move': 3,
+              });
+              socket.on('Successfully Joined', (data) {
+                //show snack bar with the data on it
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(data),
+                  ),
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MultiplayerScreen(
+                      room: Room(
+                        // Extract details from server response (assuming data structure)
+                        code: data,
+                        player1: Player(symbol: '', move: '0'),
+                        // Player1 details
+                        player2: Player(symbol: 'O', move: '0'),
+                        // Player2 details
+                        turn: 1, // Assuming it's not host's turn initially
+                      ),
+                      isHost: false,
+                    ),
+                  ),);
+              }
+              );
+              //socket on Unsuccessfully Joined
+              socket.on('Unsuccessfully Joined', (data) {
+                //show snack bar with the data on it
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(data),
+                  ),
+                );
+              });
+
             },
             child: const Text('Join'),
           ),
@@ -169,59 +248,13 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
       ),
     );
   }
-  void codeReceiver() {
-    _channel.sink.add(jsonEncode({'message': 'generateCode'}));
-    // print('Sent message: generateCode');
-    _channel.stream.listen((event) {
-      final data = jsonDecode(event);
-      handleMessage(data, _channel);
+
+  void createRoom() {
+    socket.emit('message', {
+      'type': 'create',
+      'turn': 0,
+      'symbol': 'X',
+      'move': '',
     });
-  }
-  void handleMessage(dynamic data, WebSocketChannel channel) {
-    if (data is int) {
-      print('Received data: $data');
-      setState(() {
-        receivedCode = data.toString();
-      });
-    } else if (data is Map<String, dynamic> && data.containsKey('message')) {
-      final message = data['message'];
-      if (message == 'generateCode') {
-        // Generate a code and send it back to the user
-        String code = generateCode();
-        channel.sink.add(code);
-        setState(() {
-          receivedCode = code;
-        });
-      }
-    }
-  }
-  String generateCode() {
-    // Replace this with your actual code generation logic
-    return "ABC123"; // Example code generation
-  }
-  @override
-  void dispose() {
-    _channel.sink.close();
-    super.dispose();
-  }
-
-
-  //show the user the code generated for the room in the dialog and ask them to share it with their friend
-  void _showCodeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Room Code'),
-        content: Text(receivedCode ?? ''),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 }
