@@ -15,20 +15,21 @@ class CreateOrJoinScreen extends StatefulWidget {
 class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   String? receivedCode;
 
-  final IO.Socket socket = IO.io('https://spiny-trite-breeze.glitch.me/',IO.OptionBuilder()
-      .setTransports(['websocket']).setTimeout(20000)
-      .build());
+  final IO.Socket socket = IO.io(
+      'https://spiny-trite-breeze.glitch.me/',
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .setTimeout(20000)
+          .build());
 
   @override
   void initState() {
     initSocket();
     super.initState();
   }
-
   void initSocket() {
     socket.connect();
     socket.onConnectTimeout((data) => print('timeout: $data'));
-
     socket.onConnect((_) {
       print('Connection established');
     });
@@ -89,22 +90,22 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                   //Listen for server response about room creation
                   socket.on('RoomCreated', (data) {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
+                      context,
+                      MaterialPageRoute(
                         builder: (context) => MultiplayerScreen(
-                      room: Room(
-                        // Extract details from server response (assuming data structure)
-                        code: data,
-                        player1: Player(symbol: 'X', move: '0'),
-                        // Player1 details
-                        player2: Player(symbol: '', move: '0'),
-                        // Player2 details
-                        turn:
-                        0, // Assuming it's not host's turn initially
+                          room: Room(
+                            // Extract details from server response (assuming data structure)
+                            code: data,
+                            player1: Player(symbol: 'X', move: '0'),
+                            // Player1 details
+                            player2: Player(symbol: '', move: '0'),
+                            // Player2 details
+                            turn: 0,
+                          ),
+                          isHost: true,
+                        ),
                       ),
-                      isHost: true,
-                    ),
-                    ),);
+                    );
                   });
                 }),
                 const SizedBox(
@@ -180,7 +181,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
     }
   }
 
-  void _showJoinDialog(BuildContext context) {
+  void _showJoinDialog(BuildContext context) async {
     TextEditingController codeController = TextEditingController();
     showDialog(
       context: context,
@@ -198,21 +199,17 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              socket.connect();
               socket.emit('message', {
                 'type': 'join',
                 'code': int.parse(codeController.text),
                 'turn': 1,
                 'symbol': 'O',
-                'move': 3,
+                'move': '0',
               });
               socket.on('Successfully Joined', (data) {
-                //show snack bar with the data on it
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(data),
-                  ),
-                );
+                print('Successfully Joined: $data');
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -224,13 +221,13 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                         // Player1 details
                         player2: Player(symbol: 'O', move: '0'),
                         // Player2 details
-                        turn: 1, // Assuming it's not host's turn initially
+                        turn: 1,
                       ),
                       isHost: false,
                     ),
-                  ),);
-              }
-              );
+                  ),
+                );
+              });
               //socket on Unsuccessfully Joined
               socket.on('Unsuccessfully Joined', (data) {
                 //show snack bar with the data on it
@@ -240,7 +237,6 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                   ),
                 );
               });
-
             },
             child: const Text('Join'),
           ),
@@ -254,7 +250,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
       'type': 'create',
       'turn': 0,
       'symbol': 'X',
-      'move': '',
+      'move': '0',
     });
   }
 }

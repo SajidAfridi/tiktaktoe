@@ -21,14 +21,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   var gameBoard = GameLogic.initializeGameBoard();
 
   @override
-  void initState() {
-    final multiplayerService =
-        Provider.of<MultiplayerService>(context, listen: false);
-    multiplayerService.joinRoom(widget.room.code.toString());
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -36,10 +28,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            //show the room code to the host so that he/she can share it with the other user to join
             if (widget.isHost)
               Text(
-                'Room code: ${widget.room.code}',
+                'Room code: ${widget.room.code.toString()}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -72,9 +63,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            const Text(
-              'Someone turns',
-              style: TextStyle(
+            Text(
+              'Your symbol: ${widget.isHost ? 'X' : 'O'}',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -85,20 +76,34 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     );
   }
 
-  void _handleTap(String index) {
+  Future<void> _handleTap(String index) async {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
     final rowIndex = int.parse(index.split(',')[0]);
     final colIndex = int.parse(index.split(',')[1]);
     //check and return the turn value from the room
-    int turn = multiplayerService.getRoomTurn(widget.room.code.toString());
-    bool isPlayerTurn = multiplayerService.isPlayerTurn(0, widget.isHost ? 'X' : 'O');
-    if (gameBoard[rowIndex][colIndex] == ''&&isPlayerTurn) {
+    int turn = multiplayerService.getRoomTurn(widget.room.code);
+    bool isPlayerTurn = multiplayerService.isPlayerTurn(turn, widget.isHost ? 'X' : 'O');
+    if ((gameBoard[rowIndex][colIndex] == '')&&(isPlayerTurn)) {
       multiplayerService.sendMove(
-          widget.room.code.toString(), widget.isHost ? 'X' : 'O', index);
+          widget.room.code, widget.isHost ? 'X' : 'O', index);
       gameBoard[rowIndex][colIndex] = widget.isHost ? 'X' : 'O';
       setState(() {
-        gameBoard = gameBoard;
+        multiplayerService.roomUpdates?.listen((room) {
+          print('Room updated: $room');
+          setState(() {
+            gameBoard = room.moves.fold<List<List<String>>>(
+              List.generate(3, (_) => List.filled(3, '')),
+                  (board, move) {
+                final moveParts = move.move.split(',');
+                final rowIndex = int.parse(moveParts[0]);
+                final colIndex = int.parse(moveParts[1]);
+                board[rowIndex][colIndex] = move.symbol;
+                return board;
+              },
+            );
+          });
+        });
       });
     }else{
       //show snack bar with appropriate message
@@ -165,4 +170,10 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
+  void updateGameBoard(List<List<String>> moves) {
+    setState(() {
+      gameBoard = moves;
+    });
+  }
+
 }
