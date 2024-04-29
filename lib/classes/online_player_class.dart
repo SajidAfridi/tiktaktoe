@@ -1,53 +1,59 @@
-List<Room> rooms = [];
-
-class movement{
-  final String symbol;
-  final String move;
-
-  movement({
-    required this.symbol,
-    required this.move,
-  });
-}
-
-
-class Room{
-  final Player player1;
-  final Player player2;
-  final int code;
-  final int turn;
-  final List<movement> moves = [];
-
-  Room({
-    required this.player1,
-    required this.player2,
-    required this.code,
-    required this.turn,
-  });
-
-  //from json
-  factory Room.fromJson(Map<String, dynamic> json) {
-    return Room(
-      player1: Player(
-        symbol: json['player1']['symbol'],
-        move: json['player1']['move'],
-      ),
-      player2: Player(
-        symbol: json['player2']['symbol'],
-        move: json['player2']['move'],
-      ),
-      code: json['code'],
-      turn: json['turn'],
-    );
-  }
-
-}
 class Player {
   final String symbol;
   final String move;
+  final String socketId;
 
-  Player({
-    required this.symbol,
-    required this.move,
-  });
+  Player({required this.symbol, required this.move, required this.socketId});
+
+  factory Player.fromJson(Map<String, dynamic> json) {
+    return Player(
+      symbol: json['symbol'],
+      move: json['move'],
+      socketId: json['socketId'],
+    );
+  }
+}
+
+class Movement {
+  final String move;
+  final String symbol;
+
+  Movement({required this.move, required this.symbol});
+
+  factory Movement.fromJson(Map<String, dynamic> json) {
+    return Movement(
+      move: json['move'],
+      symbol: json['symbol'],
+    );
+  }
+}
+
+class Room {
+  List<Movement> moves;
+  int code;
+  int turn;
+  List<Player> players;
+
+  Room(
+      {required this.moves,
+      required this.code,
+      required this.turn,
+      required this.players});
+
+  factory Room.fromJson(Map<String, dynamic> json) {
+    var movesList = json['moves'] as List;
+    List<Movement> moves =
+        movesList.map((moveJson) => Movement.fromJson(moveJson)).toList();
+
+    var playersList = json['players'] as List;
+    List<Player> players =
+        playersList.map((playerJson) => Player.fromJson(playerJson)).toList();
+
+    return Room(
+      moves: moves,
+      code: json['code'],
+      turn: json['turn'],
+      players: players,
+    );
+  }
 }

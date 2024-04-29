@@ -5,6 +5,7 @@ import 'package:tiktaktoe/classes/online_player_class.dart';
 import '../classes/game_logic.dart';
 import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class MultiplayerScreen extends StatefulWidget {
   final Room room;
@@ -18,7 +19,19 @@ class MultiplayerScreen extends StatefulWidget {
 }
 
 class _MultiplayerScreenState extends State<MultiplayerScreen> {
+  late IO.Socket socket;
   var gameBoard = GameLogic.initializeGameBoard();
+
+  @override
+  void initState() {
+    super.initState();
+    socket = IO.io(
+        "https://spiny-trite-breeze.glitch.me/",
+        IO.OptionBuilder()
+            .setTransports(['websocket'])
+            .setTimeout(10000)
+            .build());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +50,35 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 ),
               ),
             const SizedBox(height: 16),
+            //stream builder with the stream from the provider
+            Consumer(
+                builder: (context, MultiplayerService multiplayerService, _) {
+              return StreamBuilder<Room>(
+                stream: multiplayerService.roomUpdates,
+                builder: (context, snapshot) {
+                  socket.on(
+                      'roomUpdate',
+                      (data) =>
+                          print('Room updated i mean braodcasted: $data'));
+                  // print the list of moves from the room.moves in neat order
+                  print('List of moves: ${snapshot.data?.moves}');
+                  if (snapshot.hasData) {
+                    final room = snapshot.data!;
+                    gameBoard = room.moves.fold<List<List<String>>>(
+                      List.generate(3, (_) => List.filled(3, '')),
+                      (board, move) {
+                        final moveParts = move.move.split(',');
+                        final rowIndex = int.parse(moveParts[0]);
+                        final colIndex = int.parse(moveParts[1]);
+                        board[rowIndex][colIndex] = move.symbol;
+                        return board;
+                      },
+                    );
+                  }
+                  return const SizedBox();
+                },
+              );
+            }),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -81,53 +123,56 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         Provider.of<MultiplayerService>(context, listen: false);
     final rowIndex = int.parse(index.split(',')[0]);
     final colIndex = int.parse(index.split(',')[1]);
-    //check and return the turn value from the room
-    int turn = multiplayerService.getRoomTurn(widget.room.code);
-    bool isPlayerTurn = multiplayerService.isPlayerTurn(turn, widget.isHost ? 'X' : 'O');
-    if ((gameBoard[rowIndex][colIndex] == '')&&(isPlayerTurn)) {
-      multiplayerService.sendMove(
-          widget.room.code, widget.isHost ? 'X' : 'O', index);
-      gameBoard[rowIndex][colIndex] = widget.isHost ? 'X' : 'O';
-      setState(() {
-        multiplayerService.roomUpdates?.listen((room) {
-          print('Room updated: $room');
-          setState(() {
-            gameBoard = room.moves.fold<List<List<String>>>(
-              List.generate(3, (_) => List.filled(3, '')),
-                  (board, move) {
-                final moveParts = move.move.split(',');
-                final rowIndex = int.parse(moveParts[0]);
-                final colIndex = int.parse(moveParts[1]);
-                board[rowIndex][colIndex] = move.symbol;
-                return board;
-              },
-            );
-          });
-        });
-      });
-    }else{
-      //show snack bar with appropriate message
+    if ((gameBoard[rowIndex][colIndex] == '')) {
+      // Create a new movement object (unchanged)
+      final newMovement =
+          Movement(symbol: widget.isHost ? 'X' : 'O', move: index);
+
+      // Send the move to the server (unchanged)
+      multiplayerService.sendMove(widget.room.code, newMovement);
+      // Update the local game board using a separate function for clarity
+      //await updateGameBoardFromRoomUpdates(multiplayerService);
+    } else {
+      // Show snack bar with appropriate message (unchanged)
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('It is not your turn'),
         duration: Duration(seconds: 2),
       ));
     }
-
   }
 
+  // Future<void> updateGameBoardFromRoomUpdates(MultiplayerService service) async {
+  //   // Listen for room updates and update the board
+  //   service.roomUpdates?.listen((room) {
+  //     print('Room updated: $room');
+  //     setState(() {
+  //       gameBoard = room.moves.fold<List<List<String>>>(
+  //         List.generate(3, (_) => List.filled(3, '')),
+  //             (board, move) {
+  //           final moveParts = move.move.split(',');
+  //           final rowIndex = int.parse(moveParts[0]);
+  //           final colIndex = int.parse(moveParts[1]);
+  //           board[rowIndex][colIndex] = move.symbol;
+  //           return board;
+  //         },
+  //       );
+  //     });
+  //   });
+  // }
+
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
+    final symbol = gameBoard[rowIndex][colIndex];
     return GestureDetector(
       onTap: () {
         print('Cell tapped: $rowIndex,$colIndex');
         _handleTap('$rowIndex,$colIndex');
       },
-      child: Card(child: iconDecider(cellValue)),
+      child: Card(child: iconDecider(symbol)),
     );
   }
 
-  Widget iconDecider(String value) {
-    //bool isWinningMove = value.endsWith('_win');
-    if (value.replaceAll('_win', '') == 'X') {
+  Widget iconDecider(String symbol) {
+    if (symbol == 'X') {
       return FadeOutUp(
         duration: const Duration(milliseconds: 300),
         child: Container(
@@ -142,7 +187,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           ),
         ),
       );
-    } else if (value.replaceAll('_win', '') == 'O') {
+    } else if (symbol == 'O') {
       return FadeOutUp(
         duration: const Duration(milliseconds: 300),
         child: Container(
@@ -170,10 +215,30 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
-  void updateGameBoard(List<List<String>> moves) {
-    setState(() {
-      gameBoard = moves;
-    });
-  }
 
+  Widget buildGameBoard(List<List<String>> gameBoard) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+      ),
+      padding: const EdgeInsets.all(4),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 5,
+          mainAxisSpacing: 5,
+        ),
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          final rowIndex = index ~/ 3;
+          final colIndex = index % 3;
+          final cellValue = gameBoard[rowIndex][colIndex];
+          return buildGridCell(rowIndex, colIndex, cellValue);
+        },
+        itemCount: 9,
+      ),
+    );
+  }
 }

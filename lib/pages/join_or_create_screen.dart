@@ -96,11 +96,12 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                           room: Room(
                             // Extract details from server response (assuming data structure)
                             code: data,
-                            player1: Player(symbol: 'X', move: '0'),
-                            // Player1 details
-                            player2: Player(symbol: '', move: '0'),
+                            players: [
+                              Player(symbol: 'X', move: '0', socketId: ''),
+                              Player(symbol: 'O', move: '0', socketId: ''),
+                            ],
                             // Player2 details
-                            turn: 0,
+                            turn: 0, moves: [],
                           ),
                           isHost: true,
                         ),
@@ -217,11 +218,12 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                       room: Room(
                         // Extract details from server response (assuming data structure)
                         code: data,
-                        player1: Player(symbol: '', move: '0'),
-                        // Player1 details
-                        player2: Player(symbol: 'O', move: '0'),
                         // Player2 details
-                        turn: 1,
+                        turn: 1, moves: [], players: [
+                          Player(symbol: '', move: '0', socketId: ''),
+                        // Player1 details
+                        Player(symbol: 'O', move: '0', socketId: ''),
+                      ],
                       ),
                       isHost: false,
                     ),
