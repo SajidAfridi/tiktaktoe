@@ -56,4 +56,11 @@ class MultiplayerService {
     roomController.close();
     socket.dispose();
   }
+
+  void resetGame(int roomCode){
+    socket.emit('message', {
+      'type': 'resetRoom',
+      'code': roomCode,
+    });
+  }
 }

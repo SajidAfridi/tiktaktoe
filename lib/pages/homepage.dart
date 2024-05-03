@@ -331,7 +331,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int row = move ~/ 3;
         int col = move % 3;
         gameBoard[row][col] = 'O';
-        if (GameLogic().checkWinningMove(gameBoard, 'O')) {
+        if (GameLogic().checkWinningMove(gameBoard, 'O',)) {
           isPlayer1 = true;
           return;
         }

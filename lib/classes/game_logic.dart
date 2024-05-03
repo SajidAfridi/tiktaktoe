@@ -152,7 +152,6 @@ class GameLogic {
 
     return false;
   }
-  //update gameboard after each move
   static List<List<String>> updateGameBoard(
       List<List<String>> gameBoard, int rowIndex, int colIndex, String player) {
     gameBoard[rowIndex][colIndex] = player;

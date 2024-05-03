@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:animate_do/animate_do.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiktaktoe/classes/online_player_class.dart';
+import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
 import '../classes/game_logic.dart';
 import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
@@ -11,8 +14,11 @@ class MultiplayerScreen extends StatefulWidget {
   final Room room;
   final bool isHost;
 
-  const MultiplayerScreen(
-      {super.key, required this.room, required this.isHost});
+  const MultiplayerScreen({
+    super.key,
+    required this.room,
+    required this.isHost,
+  });
 
   @override
   State<MultiplayerScreen> createState() => _MultiplayerScreenState();
@@ -21,6 +27,7 @@ class MultiplayerScreen extends StatefulWidget {
 class _MultiplayerScreenState extends State<MultiplayerScreen> {
   late IO.Socket socket;
   var gameBoard = GameLogic.initializeGameBoard();
+  late StreamController<Room> _roomController;
 
   @override
   void initState() {
@@ -31,6 +38,24 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
             .setTransports(['websocket'])
             .setTimeout(10000)
             .build());
+    _roomController = StreamController<Room>();
+    socket.on('roomUpdate', (data) {
+      final room = Room.fromJson(data);
+      print('Room updated: $room');
+      _roomController.add(room);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Close the StreamController when it's no longer needed
+    _roomController.close();
+    super.dispose();
+  }
+
+  // Define roomUpdates stream getter
+  Stream<Room> get roomUpdates {
+    return _roomController.stream;
   }
 
   @override
@@ -51,34 +76,17 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
               ),
             const SizedBox(height: 16),
             //stream builder with the stream from the provider
-            Consumer(
-                builder: (context, MultiplayerService multiplayerService, _) {
-              return StreamBuilder<Room>(
-                stream: multiplayerService.roomUpdates,
-                builder: (context, snapshot) {
-                  socket.on(
-                      'roomUpdate',
-                      (data) =>
-                          print('Room updated i mean braodcasted: $data'));
-                  // print the list of moves from the room.moves in neat order
-                  print('List of moves: ${snapshot.data?.moves}');
-                  if (snapshot.hasData) {
-                    final room = snapshot.data!;
-                    gameBoard = room.moves.fold<List<List<String>>>(
-                      List.generate(3, (_) => List.filled(3, '')),
-                      (board, move) {
-                        final moveParts = move.move.split(',');
-                        final rowIndex = int.parse(moveParts[0]);
-                        final colIndex = int.parse(moveParts[1]);
-                        board[rowIndex][colIndex] = move.symbol;
-                        return board;
-                      },
-                    );
-                  }
-                  return const SizedBox();
-                },
-              );
-            }),
+            StreamBuilder<Room>(
+              stream: roomUpdates,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    updateGameBoard(snapshot.data!);
+                  });
+                }
+                return const SizedBox();
+              },
+            ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -95,6 +103,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                   ),
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
+                    // Calculate the row and column index based on the index
                     final rowIndex = index ~/ 3;
                     final colIndex = index % 3;
                     final cellValue = gameBoard[rowIndex][colIndex];
@@ -120,20 +129,24 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
   Future<void> _handleTap(String index) async {
     final multiplayerService =
-        Provider.of<MultiplayerService>(context, listen: false);
+    Provider.of<MultiplayerService>(context, listen: false);
     final rowIndex = int.parse(index.split(',')[0]);
     final colIndex = int.parse(index.split(',')[1]);
     if ((gameBoard[rowIndex][colIndex] == '')) {
-      // Create a new movement object (unchanged)
       final newMovement =
-          Movement(symbol: widget.isHost ? 'X' : 'O', move: index);
+      Movement(symbol: widget.isHost ? 'X' : 'O', move: index);
 
       // Send the move to the server (unchanged)
       multiplayerService.sendMove(widget.room.code, newMovement);
-      // Update the local game board using a separate function for clarity
-      //await updateGameBoardFromRoomUpdates(multiplayerService);
+
+      // Update the game board with the new move
+      setState(() {
+        gameBoard[rowIndex][colIndex] = newMovement.symbol;
+      });
+
+      // Call checkWin after updating the game board
+      checkWin(newMovement.symbol, context);
     } else {
-      // Show snack bar with appropriate message (unchanged)
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('It is not your turn'),
         duration: Duration(seconds: 2),
@@ -141,24 +154,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     }
   }
 
-  // Future<void> updateGameBoardFromRoomUpdates(MultiplayerService service) async {
-  //   // Listen for room updates and update the board
-  //   service.roomUpdates?.listen((room) {
-  //     print('Room updated: $room');
-  //     setState(() {
-  //       gameBoard = room.moves.fold<List<List<String>>>(
-  //         List.generate(3, (_) => List.filled(3, '')),
-  //             (board, move) {
-  //           final moveParts = move.move.split(',');
-  //           final rowIndex = int.parse(moveParts[0]);
-  //           final colIndex = int.parse(moveParts[1]);
-  //           board[rowIndex][colIndex] = move.symbol;
-  //           return board;
-  //         },
-  //       );
-  //     });
-  //   });
-  // }
 
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     final symbol = gameBoard[rowIndex][colIndex];
@@ -240,5 +235,129 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         itemCount: 9,
       ),
     );
+  }
+
+  updateGameBoard(Room room) {
+    setState(() {
+      gameBoard = room.moves.fold<List<List<String>>>(
+        List.generate(3, (_) => List.filled(3, '')),
+        (board, move) {
+          final moveParts = move.move.split(',');
+          final rowIndex = int.parse(moveParts[0]);
+          final colIndex = int.parse(moveParts[1]);
+          board[rowIndex][colIndex] = move.symbol;
+          return board;
+        },
+      );
+    });
+  }
+
+  void checkWin(String symbol, BuildContext context) {
+    String winner = '';
+    if (gameBoard[0][0] == gameBoard[0][1] &&
+        gameBoard[0][0] == gameBoard[0][2] &&
+        gameBoard[0][0].isNotEmpty) {
+      winner = gameBoard[0][0];
+    } else if (gameBoard[1][0] == gameBoard[1][1] &&
+        gameBoard[1][0] == gameBoard[1][2] &&
+        gameBoard[1][0].isNotEmpty) {
+      winner = gameBoard[1][0];
+    } else if (gameBoard[2][0] == gameBoard[2][1] &&
+        gameBoard[2][0] == gameBoard[2][2] &&
+        gameBoard[2][0].isNotEmpty) {
+      winner = gameBoard[2][0];
+    } else if (gameBoard[0][0] == gameBoard[1][0] &&
+        gameBoard[0][0] == gameBoard[2][0] &&
+        gameBoard[0][0].isNotEmpty) {
+      winner = gameBoard[0][0];
+    } else if (gameBoard[0][1] == gameBoard[1][1] &&
+        gameBoard[0][1] == gameBoard[2][1] &&
+        gameBoard[0][1].isNotEmpty) {
+      winner = gameBoard[0][1];
+    } else if (gameBoard[0][2] == gameBoard[1][2] &&
+        gameBoard[0][2] == gameBoard[2][2] &&
+        gameBoard[0][2].isNotEmpty) {
+      winner = gameBoard[0][2];
+    } else if (gameBoard[0][0] == gameBoard[1][1] &&
+        gameBoard[0][0] == gameBoard[2][2] &&
+        gameBoard[0][0].isNotEmpty) {
+      winner = gameBoard[0][0];
+    } else if (gameBoard[0][2] == gameBoard[1][1] &&
+        gameBoard[0][2] == gameBoard[2][0] &&
+        gameBoard[0][2].isNotEmpty) {
+      winner = gameBoard[0][2];
+    }
+
+    if (winner.isNotEmpty) {
+      String who = '';
+      if (winner == symbol) {
+        who = 'You';
+      } else {
+        who = 'Opponent';
+      }
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.bottomSlide,
+          title: '$who Won!',
+          desc: 'Play Again',
+          headerAnimationLoop: false,
+          btnCancel: ElevatedButton(
+            onPressed: () {
+              disconnectSocket();
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+                return const SelectDifficultyScreen();
+              }), (route) => false);
+            },
+            child: const Text('Back'),
+          ),
+          btnOkOnPress: () {
+            resetGame();
+          }).show();
+    } else if (isBoardFull()) {
+      AwesomeDialog(
+          context: context,
+          dialogType: DialogType.warning,
+          animType: AnimType.bottomSlide,
+          title: 'Draw',
+          desc: 'Play again',
+          headerAnimationLoop: false,
+          btnCancel: ElevatedButton(
+            onPressed: () {
+              disconnectSocket();
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+                return const SelectDifficultyScreen();
+              }), (route) => false);
+            },
+            child: const Text('Back to Home'),
+          ),
+          btnOkOnPress: () {
+            resetGame();
+          }).show();
+    }
+  }
+
+  bool isBoardFull() {
+    for (var row in gameBoard) {
+      for (var cell in row) {
+        if (cell.isEmpty) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  void disconnectSocket() {
+    socket.disconnect();
+  }
+
+  void resetGame() {
+    final multiplayerService =
+    Provider.of<MultiplayerService>(context, listen: false);
+    multiplayerService.resetGame(widget.room.code);
+    setState(() {
+      gameBoard = GameLogic.initializeGameBoard();
+    });
   }
 }
