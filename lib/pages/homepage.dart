@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            const RoundInfoWidget(),
+            const RoundInfoWidget(isHost: true,),
             const SizedBox(
               height: 16,
             ),

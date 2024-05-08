@@ -10,6 +10,8 @@ import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
+import '../widgets/who_vs_who_widget.dart';
+
 class MultiplayerScreen extends StatefulWidget {
   final Room room;
   final bool isHost;
@@ -65,13 +67,29 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            RoundInfoWidget(
+              isHost: widget.isHost,
+            ),
+            const SizedBox(height: 30),
             if (widget.isHost)
-              Text(
-                'Room code: ${widget.room.code.toString()}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 50,
+                  width:double.maxFinite,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.brown
+                        .withOpacity(0.5), //Colors.brown.withOpacity(0.5),
+                  ),
+                  child: Text(
+                    'Room Code: ${widget.room.code}',
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 16),
@@ -79,6 +97,10 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
             StreamBuilder<Room>(
               stream: roomUpdates,
               builder: (context, snapshot) {
+                print(snapshot.data);
+                // if (snapshot.data == null) {
+                //   return const CircularProgressIndicator();
+                // }
                 if (snapshot.hasData) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     updateGameBoard(snapshot.data!);
@@ -113,14 +135,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
-            Text(
-              'Your symbol: ${widget.isHost ? 'X' : 'O'}',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ],
         ),
       ),
@@ -129,12 +143,12 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
   Future<void> _handleTap(String index) async {
     final multiplayerService =
-    Provider.of<MultiplayerService>(context, listen: false);
+        Provider.of<MultiplayerService>(context, listen: false);
     final rowIndex = int.parse(index.split(',')[0]);
     final colIndex = int.parse(index.split(',')[1]);
     if ((gameBoard[rowIndex][colIndex] == '')) {
       final newMovement =
-      Movement(symbol: widget.isHost ? 'X' : 'O', move: index);
+          Movement(symbol: widget.isHost ? 'X' : 'O', move: index);
 
       // Send the move to the server (unchanged)
       multiplayerService.sendMove(widget.room.code, newMovement);
@@ -153,7 +167,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ));
     }
   }
-
 
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     final symbol = gameBoard[rowIndex][colIndex];
@@ -305,7 +318,8 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           btnCancel: ElevatedButton(
             onPressed: () {
               disconnectSocket();
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return const SelectDifficultyScreen();
               }), (route) => false);
             },
@@ -325,7 +339,8 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           btnCancel: ElevatedButton(
             onPressed: () {
               disconnectSocket();
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return const SelectDifficultyScreen();
               }), (route) => false);
             },
@@ -354,7 +369,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
   void resetGame() {
     final multiplayerService =
-    Provider.of<MultiplayerService>(context, listen: false);
+        Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
     setState(() {
       gameBoard = GameLogic.initializeGameBoard();

@@ -1,37 +1,23 @@
 import 'package:flutter/material.dart';
 
 class RoundInfoWidget extends StatelessWidget {
+  final bool isHost;
+
   const RoundInfoWidget({
     super.key,
+    required this.isHost,
   });
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              radius: 50,
-              backgroundImage: AssetImage('assets/images/cross.png'),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'You',
-              style: TextStyle(
-                fontFamily: 'PermanentMarker',
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-          ],
+        buildPlayerColumn(
+          'You',
+          isHost ? 'assets/images/cross.png' : 'assets/images/circle.png',
         ),
-        Center(
+        const Center(
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 20,
@@ -48,24 +34,31 @@ class RoundInfoWidget extends StatelessWidget {
             ),
           ),
         ),
-        Column(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 50,
-              backgroundImage: AssetImage('assets/images/circle.png'),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'AI',
-              style: TextStyle(
-                fontFamily: 'PermanentMarker',
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-          ],
+        buildPlayerColumn(
+          'Opponent',
+          isHost ? 'assets/images/circle.png' : 'assets/images/cross.png',
+        ),
+      ],
+    );
+  }
+
+  Column buildPlayerColumn(name, image) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: Colors.white,
+          radius: 50,
+          backgroundImage: AssetImage(image),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          style: const TextStyle(
+            fontFamily: 'PermanentMarker',
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
         ),
       ],
     );
