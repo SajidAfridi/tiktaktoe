@@ -14,6 +14,8 @@ class CreateOrJoinScreen extends StatefulWidget {
 
 class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   String? receivedCode;
+  FocusNode textFocus = FocusNode();
+  TextEditingController codeController = TextEditingController();
 
   final IO.Socket socket = IO.io(
       'https://spiny-trite-breeze.glitch.me/',
@@ -27,6 +29,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
     initSocket();
     super.initState();
   }
+
   void initSocket() {
     socket.connect();
     socket.onConnectTimeout((data) => print('timeout: $data'));
@@ -114,6 +117,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                 ),
                 buildButton('Join Room', () {
                   _showJoinDialog(context);
+                  FocusScope.of(context).requestFocus(textFocus);
                 }),
               ],
             ),
@@ -183,68 +187,85 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   }
 
   void _showJoinDialog(BuildContext context) async {
-    TextEditingController codeController = TextEditingController();
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Join Game'),
-        content: TextField(
-          controller: codeController,
-          decoration: const InputDecoration(labelText: 'Enter Room Code'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              socket.connect();
-              socket.emit('message', {
-                'type': 'join',
-                'code': int.parse(codeController.text),
-                'turn': 1,
-                'symbol': 'O',
-                'move': '0',
-              });
-              socket.on('Successfully Joined', (data) {
-                print('Successfully Joined: $data');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MultiplayerScreen(
-                      room: Room(
-                        // Extract details from server response (assuming data structure)
-                        code: data,
-                        // Player2 details
-                        turn: 1, moves: [], players: [
-                          Player(symbol: '', move: '0', socketId: ''),
-                        // Player1 details
-                        Player(symbol: 'O', move: '0', socketId: ''),
-                      ],
+        context: context,
+        builder: (context) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            FocusScope.of(context).requestFocus(textFocus);
+          });
+          return AlertDialog(
+            title: const Center(
+              child: Text(
+                'Join Game',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            content: TextField(
+              focusNode: textFocus, // Assign the FocusNode to the TextField
+              controller: codeController,
+              decoration: const InputDecoration(
+                labelText: 'Enter Room Code',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  socket.connect();
+                  socket.emit('message', {
+                    'type': 'join',
+                    'code': int.parse(codeController.text),
+                    'turn': 1,
+                    'symbol': 'O',
+                    'move': '0',
+                  });
+                  socket.on('Successfully Joined', (data) {
+                    print('Successfully Joined: $data');
+                    //remove the focus
+                    FocusScope.of(context).unfocus();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiplayerScreen(
+                          room: Room(
+                            // Extract details from server response (assuming data structure)
+                            code: data,
+                            // Player2 details
+                            turn: 1,
+                            moves: [],
+                            players: [
+                              Player(symbol: '', move: '0', socketId: ''),
+                              // Player1 details
+                              Player(symbol: 'O', move: '0', socketId: ''),
+                            ],
+                          ),
+                          isHost: false,
+                        ),
                       ),
-                      isHost: false,
-                    ),
-                  ),
-                );
-              });
-              //socket on Unsuccessfully Joined
-              socket.on('Unsuccessfully Joined', (data) {
-                //show snack bar with the data on it
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(data),
-                  ),
-                );
-              });
-            },
-            child: const Text('Join'),
-          ),
-        ],
-      ),
-    );
+                    );
+                  });
+                  //socket on Unsuccessfully Joined
+                  socket.on('Unsuccessfully Joined', (data) {
+                    //show snack bar with the data on it
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(data),
+                      ),
+                    );
+                  });
+                },
+                child: const Text('Join'),
+              ),
+            ],
+          );
+        });
   }
 
   void createRoom() {

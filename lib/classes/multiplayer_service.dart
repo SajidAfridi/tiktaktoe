@@ -19,7 +19,6 @@ class MultiplayerService {
       'symbol': movement.symbol,
       'move': movement.move,
     });
-    print('Move sent');
   }
 
   //stream the room turn if it is 0 or 1 and the symbol of the player only with room code
@@ -29,7 +28,6 @@ class MultiplayerService {
       'code': roomCode,
     });
     socket.on('roomTurn', (data) {
-      print('Room turn: $data');
       return data;
     });
     return 0;
@@ -41,26 +39,25 @@ class MultiplayerService {
 
     // roomUpdate is broadcast from server to all the users
     socket.on('roomUpdate', (data) {
-      print('****************Room updated: $data ******************');
       final room = Room.fromJson(data);
-      print('Room updated: $room');
       // Add the received room object to a stream controller
       roomController.add(room);
     });
     return roomController.stream;
   }
 
-// Add a StreamController to manage the room updates stream
   final roomController = StreamController<Room>.broadcast();
   void dispose() {
     roomController.close();
     socket.dispose();
   }
 
-  void resetGame(int roomCode){
+  void resetGame(int roomCode) {
+    print('Resetting the room with code: $roomCode');
     socket.emit('message', {
       'type': 'resetRoom',
       'code': roomCode,
+      'turn': 0,
     });
   }
 }

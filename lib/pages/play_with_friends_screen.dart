@@ -43,18 +43,19 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     _roomController = StreamController<Room>();
     socket.on('roomUpdate', (data) {
       final room = Room.fromJson(data);
-      print('Room updated: $room');
       _roomController.add(room);
     });
+    socket.on('Winner', (data) {
+      String winner = data.toString(); // Assuming the winner symbol is sent as a string
+      checkWin(winner);
+    });
   }
-
   @override
   void dispose() {
     // Close the StreamController when it's no longer needed
     _roomController.close();
     super.dispose();
   }
-
   // Define roomUpdates stream getter
   Stream<Room> get roomUpdates {
     return _roomController.stream;
@@ -77,7 +78,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 child: Container(
                   alignment: Alignment.center,
                   height: 50,
-                  width:double.maxFinite,
+                  width: double.maxFinite,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.brown
@@ -97,10 +98,12 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
             StreamBuilder<Room>(
               stream: roomUpdates,
               builder: (context, snapshot) {
-                print(snapshot.data);
-                // if (snapshot.data == null) {
-                //   return const CircularProgressIndicator();
-                // }
+                if (snapshot.data == null) {
+                  return const SizedBox(
+                    height: 30,
+                    child: Text('Waiting for opponent to join...'),
+                  );
+                }
                 if (snapshot.hasData) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     updateGameBoard(snapshot.data!);
@@ -125,7 +128,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                   ),
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
-                    // Calculate the row and column index based on the index
                     final rowIndex = index ~/ 3;
                     final colIndex = index % 3;
                     final cellValue = gameBoard[rowIndex][colIndex];
@@ -152,14 +154,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
       // Send the move to the server (unchanged)
       multiplayerService.sendMove(widget.room.code, newMovement);
-
-      // Update the game board with the new move
-      setState(() {
-        gameBoard[rowIndex][colIndex] = newMovement.symbol;
-      });
-
-      // Call checkWin after updating the game board
-      checkWin(newMovement.symbol, context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('It is not your turn'),
@@ -167,18 +161,15 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ));
     }
   }
-
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     final symbol = gameBoard[rowIndex][colIndex];
     return GestureDetector(
       onTap: () {
-        print('Cell tapped: $rowIndex,$colIndex');
         _handleTap('$rowIndex,$colIndex');
       },
       child: Card(child: iconDecider(symbol)),
     );
   }
-
   Widget iconDecider(String symbol) {
     if (symbol == 'X') {
       return FadeOutUp(
@@ -223,7 +214,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
-
   Widget buildGameBoard(List<List<String>> gameBoard) {
     return Container(
       decoration: BoxDecoration(
@@ -249,8 +239,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ),
     );
   }
-
-  updateGameBoard(Room room) {
+  void updateGameBoard(Room room) {
     setState(() {
       gameBoard = room.moves.fold<List<List<String>>>(
         List.generate(3, (_) => List.filled(3, '')),
@@ -264,92 +253,37 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     });
   }
+  void checkWin(String winner) {
+    String symbol = widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
+    String who = '';
 
-  void checkWin(String symbol, BuildContext context) {
-    String winner = '';
-    if (gameBoard[0][0] == gameBoard[0][1] &&
-        gameBoard[0][0] == gameBoard[0][2] &&
-        gameBoard[0][0].isNotEmpty) {
-      winner = gameBoard[0][0];
-    } else if (gameBoard[1][0] == gameBoard[1][1] &&
-        gameBoard[1][0] == gameBoard[1][2] &&
-        gameBoard[1][0].isNotEmpty) {
-      winner = gameBoard[1][0];
-    } else if (gameBoard[2][0] == gameBoard[2][1] &&
-        gameBoard[2][0] == gameBoard[2][2] &&
-        gameBoard[2][0].isNotEmpty) {
-      winner = gameBoard[2][0];
-    } else if (gameBoard[0][0] == gameBoard[1][0] &&
-        gameBoard[0][0] == gameBoard[2][0] &&
-        gameBoard[0][0].isNotEmpty) {
-      winner = gameBoard[0][0];
-    } else if (gameBoard[0][1] == gameBoard[1][1] &&
-        gameBoard[0][1] == gameBoard[2][1] &&
-        gameBoard[0][1].isNotEmpty) {
-      winner = gameBoard[0][1];
-    } else if (gameBoard[0][2] == gameBoard[1][2] &&
-        gameBoard[0][2] == gameBoard[2][2] &&
-        gameBoard[0][2].isNotEmpty) {
-      winner = gameBoard[0][2];
-    } else if (gameBoard[0][0] == gameBoard[1][1] &&
-        gameBoard[0][0] == gameBoard[2][2] &&
-        gameBoard[0][0].isNotEmpty) {
-      winner = gameBoard[0][0];
-    } else if (gameBoard[0][2] == gameBoard[1][1] &&
-        gameBoard[0][2] == gameBoard[2][0] &&
-        gameBoard[0][2].isNotEmpty) {
-      winner = gameBoard[0][2];
+    if (winner == symbol) {
+      who = 'You';
+    } else {
+      who = 'Opponent';
     }
 
-    if (winner.isNotEmpty) {
-      String who = '';
-      if (winner == symbol) {
-        who = 'You';
-      } else {
-        who = 'Opponent';
-      }
-      AwesomeDialog(
-          context: context,
-          dialogType: DialogType.success,
-          animType: AnimType.bottomSlide,
-          title: '$who Won!',
-          desc: 'Play Again',
-          headerAnimationLoop: false,
-          btnCancel: ElevatedButton(
-            onPressed: () {
-              disconnectSocket();
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const SelectDifficultyScreen();
-              }), (route) => false);
-            },
-            child: const Text('Back'),
-          ),
-          btnOkOnPress: () {
-            resetGame();
-          }).show();
-    } else if (isBoardFull()) {
-      AwesomeDialog(
-          context: context,
-          dialogType: DialogType.warning,
-          animType: AnimType.bottomSlide,
-          title: 'Draw',
-          desc: 'Play again',
-          headerAnimationLoop: false,
-          btnCancel: ElevatedButton(
-            onPressed: () {
-              disconnectSocket();
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const SelectDifficultyScreen();
-              }), (route) => false);
-            },
-            child: const Text('Back to Home'),
-          ),
-          btnOkOnPress: () {
-            resetGame();
-          }).show();
-    }
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.success,
+      animType: AnimType.bottomSlide,
+      title: '$who Won!',
+      desc: 'Play Again',
+      headerAnimationLoop: false,
+      btnCancel: ElevatedButton(
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const SelectDifficultyScreen()),
+                (route) => false,
+          );
+        },
+        child: const Text('Back'),
+      ),
+      btnOkOnPress: () {
+        resetGame();
+      },
+    ).show();
   }
 
   bool isBoardFull() {
@@ -362,17 +296,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     }
     return true;
   }
-
-  void disconnectSocket() {
-    socket.disconnect();
-  }
-
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
-    setState(() {
-      gameBoard = GameLogic.initializeGameBoard();
-    });
   }
 }
