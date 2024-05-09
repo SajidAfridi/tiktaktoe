@@ -32,13 +32,9 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
 
   void initSocket() {
     socket.connect();
-    socket.onConnectTimeout((data) => print('timeout: $data'));
     socket.onConnect((_) {
       print('Connection established');
     });
-    socket.onDisconnect((_) => print('Disconnected'));
-    socket.onConnectError((err) => print(err));
-    socket.onError((err) => print(err));
   }
 
   @override
@@ -227,22 +223,17 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                     'move': '0',
                   });
                   socket.on('Successfully Joined', (data) {
-                    print('Successfully Joined: $data');
-                    //remove the focus
-                    FocusScope.of(context).unfocus();
+                    Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => MultiplayerScreen(
                           room: Room(
-                            // Extract details from server response (assuming data structure)
                             code: data,
-                            // Player2 details
                             turn: 1,
                             moves: [],
                             players: [
                               Player(symbol: '', move: '0', socketId: ''),
-                              // Player1 details
                               Player(symbol: 'O', move: '0', socketId: ''),
                             ],
                           ),
@@ -251,9 +242,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                       ),
                     );
                   });
-                  //socket on Unsuccessfully Joined
                   socket.on('Unsuccessfully Joined', (data) {
-                    //show snack bar with the data on it
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(data),
