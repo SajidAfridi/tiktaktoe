@@ -203,6 +203,46 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
+              onSubmitted: (value) async{
+                FocusScope.of(context).unfocus();
+                // Reset focus within the dialog
+                FocusScope.of(context).requestFocus(FocusNode());
+                socket.connect();
+                socket.emit('message', {
+                  'type': 'join',
+                  'code': int.parse(codeController.text),
+                  'turn': 1,
+                  'symbol': 'O',
+                  'move': '0',
+                });
+                socket.on('Successfully Joined', (data) {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MultiplayerScreen(
+                        room: Room(
+                          code: data,
+                          turn: 1,
+                          moves: [],
+                          players: [
+                            Player(symbol: '', move: '0', socketId: ''),
+                            Player(symbol: 'O', move: '0', socketId: ''),
+                          ],
+                        ),
+                        isHost: false,
+                      ),
+                    ),
+                  );
+                });
+                socket.on('Unsuccessfully Joined', (data) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(data),
+                    ),
+                  );
+                });
+              },
             ),
             actions: [
               TextButton(
@@ -255,6 +295,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
           );
         });
   }
+
 
   void createRoom() {
     socket.emit('message', {

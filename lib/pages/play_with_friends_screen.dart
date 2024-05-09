@@ -257,12 +257,35 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     String symbol = widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
     String who = '';
 
-    if (winner == symbol) {
+    if(winner=="Draw"){
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        animType: AnimType.bottomSlide,
+        title: 'Match Draw🤦‍♂️!',
+        desc: 'Try Again',
+        headerAnimationLoop: false,
+        btnCancel: ElevatedButton(
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const SelectDifficultyScreen()),
+                  (route) => false,
+            );
+          },
+          child: const Text('Back'),
+        ),
+        btnOkOnPress: () {
+          resetGame();
+        },
+      ).show();
+      return;
+    }
+    else if (winner == symbol) {
       who = 'You';
     } else {
-      who = 'Opponent';
+      who = 'you loose';
     }
-
     AwesomeDialog(
       context: context,
       dialogType: DialogType.success,
@@ -286,16 +309,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     ).show();
   }
 
-  bool isBoardFull() {
-    for (var row in gameBoard) {
-      for (var cell in row) {
-        if (cell.isEmpty) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
