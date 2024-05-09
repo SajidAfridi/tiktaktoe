@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
-
 import '../classes/online_player_class.dart';
 
 class CreateOrJoinScreen extends StatefulWidget {
