@@ -1,19 +1,15 @@
-import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:tiktaktoe/pages/ai_choices_screen.dart';
-import 'package:tiktaktoe/pages/join_or_create_screen.dart';
+import 'package:tiktaktoe/pages/homepage.dart';
 
-import 'offline_play_with_friend_screen.dart';
-
-class SelectDifficultyScreen extends StatefulWidget {
-  const SelectDifficultyScreen({super.key});
+class AIModeScreen extends StatefulWidget {
+  const AIModeScreen({super.key});
 
   @override
-  State<SelectDifficultyScreen> createState() => _SelectDifficultyScreenState();
+  State<AIModeScreen> createState() => _SelectDifficultyScreenState();
 }
 
-class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
+class _SelectDifficultyScreenState extends State<AIModeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,58 +45,60 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   height: 20,
                 ),
                 const Text(
-                  'Select Your Opponent\nTo Continue',
+                  'Select Mode to continue',
                   style: TextStyle(
                     fontFamily: 'PermanentMarker',
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
                   ),
-                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(
                   height: 40,
                 ),
-                buildButton(
-                  'Play With AI',
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AIModeScreen(),
+                buildButton('Easy', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyHomePage(
+                        isEasyMode: true,
+                        isMediumMode: false,
+                        isHardMode: false,
                       ),
-                    );
-                  },
-                  Colors.green,
-                ),
+                    ),
+                  );
+                }),
                 const SizedBox(
                   height: 20,
                 ),
-                buildButton(
-                  'Play With \nFriend Offline',
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const YouVsFriendScreen(),
+                buildButton('Medium', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyHomePage(
+                        isEasyMode: false,
+                        isMediumMode: true,
+                        isHardMode: false,
                       ),
-                    );
-                  },
-                  Colors.blue,
-                ),
+                    ),
+                  );
+                }),
                 const SizedBox(
                   height: 20,
                 ),
-                buildButton(
-                  'Play With\nFriend Online',
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateOrJoinScreen(),
+                buildButton('Hard', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyHomePage(
+                        isEasyMode: false,
+                        isMediumMode: false,
+                        isHardMode: true,
                       ),
-                    );
-                  },
-                  Colors.red,
+                    ),
+                  );
+                }),
+                const SizedBox(
+                  height: 20,
                 ),
                 const SizedBox(
                   height: 20,
@@ -113,7 +111,7 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
     );
   }
 
-  Widget buildButton(String text, voidCallback, color) {
+  Widget buildButton(String text, voidCallback) {
     return SizedBox(
       height: 80,
       child: ElevatedButton(
@@ -126,11 +124,12 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
           ),
         ),
         child: ListTile(
+          splashColor: colorDecider(text),
           leading: Container(
-            height: 50,
-            width: 50,
+            height: 80,
+            width: 60,
             decoration: BoxDecoration(
-              color: color,
+              color: colorDecider(text),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -145,14 +144,13 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
               ),
               AutoSizeText(
                 text,
-                maxLines: 2,
+                maxLines: 3,
                 maxFontSize: 30,
                 minFontSize: 22,
                 style: const TextStyle(
                   fontFamily: 'PermanentMarker',
                   fontWeight: FontWeight.normal,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -161,7 +159,18 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
     );
   }
 
-  randomColor() {
-    return Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  Color colorDecider(String difficultyText) {
+    switch (difficultyText) {
+      case 'Easy':
+        return Colors.green;
+      case 'Medium':
+        return Colors.orange;
+      case 'Hard':
+        return Colors.red;
+      case 'Play With\nFriends':
+        return Colors.blue;
+      default:
+        return Colors.green;
+    }
   }
 }
