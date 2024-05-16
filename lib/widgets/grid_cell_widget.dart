@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 class GridCell extends StatelessWidget {
   final int rowIndex;
   final int colIndex;
@@ -27,8 +28,8 @@ class GridCell extends StatelessWidget {
           decoration: BoxDecoration(
             color: isWinningMove ? Colors.green : Colors.blue,
             borderRadius: isWinningMove
-                ? BorderRadius.circular(4)
-                : BorderRadius.circular(8),
+                ? BorderRadius.circular(4.r)
+                : BorderRadius.circular(8.r),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
@@ -41,8 +42,8 @@ class GridCell extends StatelessWidget {
           child: Center(
             child: Text(
               cellValue.replaceAll('_win', ''),
-              style: const TextStyle(
-                fontSize: 48.0,
+              style: TextStyle(
+                fontSize: 48.0.sp,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),

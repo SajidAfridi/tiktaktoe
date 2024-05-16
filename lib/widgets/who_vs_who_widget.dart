@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class RoundInfoWidget extends StatelessWidget {
   final bool isHost;
@@ -17,18 +18,18 @@ class RoundInfoWidget extends StatelessWidget {
           'You',
           isHost ? 'assets/images/cross.png' : 'assets/images/circle.png',
         ),
-        const Center(
+        Center(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 10,
+              horizontal: 20.w,
+              vertical: 10.h,
             ),
             child: Text(
               "VS",
               style: TextStyle(
                 fontFamily: 'PermanentMarker',
                 color: Colors.red,
-                fontSize: 50,
+                fontSize: 50.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -47,15 +48,15 @@ class RoundInfoWidget extends StatelessWidget {
       children: [
         CircleAvatar(
           backgroundColor: Colors.white,
-          radius: 50,
+          radius: 50.r,
           backgroundImage: AssetImage(image),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'PermanentMarker',
-            fontSize: 30,
+            fontSize: 30.sp,
             fontWeight: FontWeight.bold,
             color: Colors.blue,
           ),

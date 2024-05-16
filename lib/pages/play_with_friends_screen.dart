@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:tiktaktoe/classes/online_player_class.dart';
 import 'package:tiktaktoe/pages/join_or_create_screen.dart';
@@ -46,16 +47,19 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       _roomController.add(room);
     });
     socket.on('Winner', (data) {
-      String winner = data.toString(); // Assuming the winner symbol is sent as a string
+      String winner =
+          data.toString(); // Assuming the winner symbol is sent as a string
       checkWin(winner);
     });
   }
+
   @override
   void dispose() {
     // Close the StreamController when it's no longer needed
     _roomController.close();
     super.dispose();
   }
+
   // Define roomUpdates stream getter
   Stream<Room> get roomUpdates {
     return _roomController.stream;
@@ -66,7 +70,8 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     return PopScope(
       canPop: false,
       onPopInvoked: (value) {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
           return const CreateOrJoinScreen();
         }), (route) => false);
       },
@@ -78,13 +83,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
               RoundInfoWidget(
                 isHost: widget.isHost,
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: 30.h),
               if (widget.isHost)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
                     alignment: Alignment.center,
-                    height: 50,
+                    height: 50.h,
                     width: double.maxFinite,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -93,33 +98,30 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                     ),
                     child: Text(
                       'Room Code: ${widget.room.code}',
-                      style: const TextStyle(
-                        fontSize: 30,
+                      style: TextStyle(
+                        fontSize: 30.sp,
                         fontWeight: FontWeight.normal,
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               //stream builder with the stream from the provider
               StreamBuilder<Room>(
                 stream: roomUpdates,
                 builder: (context, snapshot) {
-                  String whoseTurn ='';
+                  String whoseTurn = '';
                   if (snapshot.data == null) {
-                    return const SizedBox(
-                    );
+                    return const SizedBox();
                   }
                   if (snapshot.hasData) {
                     whoseTurn = '';
                     String symbol = widget.isHost ? 'X' : 'O';
-                    if(snapshot.data!.turn==0&&symbol=='X'){
+                    if (snapshot.data!.turn == 0 && symbol == 'X') {
                       whoseTurn = 'Opponent\'s Turn';
-                    }
-                    else if(snapshot.data!.turn==1&&symbol=='O'){
+                    } else if (snapshot.data!.turn == 1 && symbol == 'O') {
                       whoseTurn = 'Opponent\'s Turn';
-                    }
-                    else{
+                    } else {
                       whoseTurn = 'Your\'s Turn';
                     }
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -131,14 +133,15 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
               ),
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   color: Colors.white,
                 ),
-                padding: const EdgeInsets.all(4),
-                child:  OnlyOnePointerRecognizerWidget(
+                padding: EdgeInsets.all(4.r),
+                child: OnlyOnePointerRecognizerWidget(
                   child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       crossAxisSpacing: 5,
                       mainAxisSpacing: 5,
@@ -179,6 +182,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ));
     }
   }
+
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     final symbol = gameBoard[rowIndex][colIndex];
     return GestureDetector(
@@ -188,13 +192,14 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       child: Card(child: iconDecider(symbol)),
     );
   }
+
   Widget iconDecider(String symbol) {
     if (symbol == 'X') {
       return FadeOutUp(
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             color: Colors.green,
             boxShadow: const [],
           ),
@@ -209,7 +214,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: Image.asset(
@@ -224,7 +229,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: const Center(child: Text('')),
@@ -232,13 +237,14 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
+
   Widget buildGameBoard(List<List<String>> gameBoard) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         color: Colors.white,
       ),
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4.r),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -257,13 +263,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ),
     );
   }
-  void updateGameBoard(Room room) {
 
+  void updateGameBoard(Room room) {
     setState(() {
       //along the gameBoard we will also update the turn
       gameBoard = room.moves.fold<List<List<String>>>(
         List.generate(3, (_) => List.filled(3, '')),
-            (board, move) {
+        (board, move) {
           final moveParts = move.move.split(',');
           final rowIndex = int.parse(moveParts[0]);
           final colIndex = int.parse(moveParts[1]);
@@ -273,11 +279,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     });
   }
+
   void checkWin(String winner) {
-    String symbol = widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
+    String symbol =
+        widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
     String who = '';
 
-    if(winner=="Draw"){
+    if (winner == "Draw") {
       AwesomeDialog(
         context: context,
         dialogType: DialogType.infoReverse,
@@ -289,8 +297,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const SelectDifficultyScreen()),
-                  (route) => false,
+              MaterialPageRoute(
+                  builder: (context) => const SelectDifficultyScreen()),
+              (route) => false,
             );
           },
           child: const Text('Back'),
@@ -300,15 +309,14 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         },
       ).show();
       return;
-    }
-    else if (winner == symbol) {
+    } else if (winner == symbol) {
       who = 'You Won';
     } else {
       who = 'You Loss';
     }
     AwesomeDialog(
       context: context,
-      dialogType: who=='You Won'?DialogType.success:DialogType.error,
+      dialogType: who == 'You Won' ? DialogType.success : DialogType.error,
       animType: AnimType.bottomSlide,
       title: '$who!',
       desc: 'Play Again',
@@ -317,8 +325,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         onPressed: () {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const SelectDifficultyScreen()),
-                (route) => false,
+            MaterialPageRoute(
+                builder: (context) => const SelectDifficultyScreen()),
+            (route) => false,
           );
         },
         child: const Text('Back'),
@@ -328,6 +337,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       },
     ).show();
   }
+
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
@@ -335,25 +345,24 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   }
 }
 
-
 class TurnIndicator extends StatelessWidget {
   final String turnMessage;
 
-  TurnIndicator({required this.turnMessage});
+  const TurnIndicator({super.key, required this.turnMessage});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.all(10.r),
+      margin: EdgeInsets.all(10.r),
       decoration: BoxDecoration(
         color: Colors.blueAccent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Text(
         turnMessage,
         style: TextStyle(
-          fontSize: 20,
+          fontSize: 20.sp,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),

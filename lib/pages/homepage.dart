@@ -2,6 +2,7 @@ import 'package:action_slider/action_slider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tiktaktoe/classes/game_logic.dart';
 import 'dart:math';
 import '../classes/one_tap_register_class.dart';
@@ -54,14 +55,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             const RoundInfoWidget(isHost: true,),
-            const SizedBox(
-              height: 16,
+            SizedBox(
+              height: 16.h,
             ),
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 color: Colors.white,
               ),
               padding: const EdgeInsets.all(4),
@@ -84,13 +85,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 30,
+            SizedBox(
+              height: 30.h,
             ),
             Container(
                 width: MediaQuery.of(context).size.width * 0.70,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(30.r),
                   color: Colors.white,
                 ),
                 child: ActionSlider.standard(
@@ -98,17 +99,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     controller.reset();
                     resetGame();
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.refresh,
                     color: Colors.white,
-                    size: 30,
+                    size: 30.r,
                   ),
                   toggleColor: Colors.blue,
-                  child: const Text(
+                  child: Text(
                     'Reset Game',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 24,
+                      fontSize: 24.sp,
                       fontFamily: 'PermanentMarker',
                     ),
                   ),
@@ -148,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             color: Colors.green,
             boxShadow: const [],
           ),
@@ -163,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: Image.asset(
@@ -178,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: const Center(child: Text('')),

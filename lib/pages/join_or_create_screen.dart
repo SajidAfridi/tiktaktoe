@@ -1,7 +1,6 @@
 import 'dart:async';
-
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
 import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
@@ -64,36 +63,36 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
           ),
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 50,
+              padding: EdgeInsets.symmetric(
+                horizontal: 50.h,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
-                  const Text(
+                  Text(
                     'Tic Tak Toe',
                     style: TextStyle(
                       fontFamily: 'PermanentMarker',
-                      fontSize: 40,
+                      fontSize: 40.sp,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
-                  const Text(
+                  Text(
                     'Create Or Join Room',
                     style: TextStyle(
                       fontFamily: 'PermanentMarker',
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  const SizedBox(
-                    height: 40,
+                  SizedBox(
+                    height: 40.h,
                   ),
                   buildButton('Create Room', () {
                     // Emit message with room creation data
@@ -123,8 +122,8 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                       );
                     });
                   }),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
                   buildButton('Join Room', () {
                     _showJoinDialog(context);
@@ -141,7 +140,7 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
 
   Widget buildButton(String text, voidCallback) {
     return SizedBox(
-      height: 80,
+      height: 100.h,
       child: ElevatedButton(
         onPressed: isButtonEnabled ? () {
           voidCallback();
@@ -158,8 +157,8 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
         child: ListTile(
           splashColor: colorDecider(text),
           leading: Container(
-            height: 80,
-            width: 60,
+            height: 80.h,
+            width: 60.w,
             decoration: BoxDecoration(
               color: colorDecider(text),
               borderRadius: BorderRadius.circular(10),
@@ -171,15 +170,14 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
           ),
           title: Row(
             children: [
-              const SizedBox(
-                width: 10,
+              SizedBox(
+                width: 20.w,
               ),
-              AutoSizeText(
+              Text(
                 text,
-                maxLines: 3,
-                maxFontSize: 30,
-                minFontSize: 20,
-                style: const TextStyle(
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 24.sp,
                   fontFamily: 'PermanentMarker',
                   fontWeight: FontWeight.normal,
                 ),

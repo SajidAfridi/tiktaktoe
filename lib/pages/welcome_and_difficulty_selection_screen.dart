@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tiktaktoe/pages/ai_choices_screen.dart';
 import 'package:tiktaktoe/pages/join_or_create_screen.dart';
 
@@ -28,25 +28,25 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
         ),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 50,
+            padding: EdgeInsets.symmetric(
+              horizontal: 50.w,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: 20.h,
                 ),
-                const Text(
+                Text(
                   'Tic Tak Toe',
                   style: TextStyle(
                     fontFamily: 'PermanentMarker',
-                    fontSize: 40,
+                    fontSize: 40.h,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: 20.h,
                 ),
                 const Text(
                   'Select Your Opponent\nTo Continue',
@@ -57,8 +57,8 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(
-                  height: 40,
+                SizedBox(
+                  height: 40.h,
                 ),
                 buildButton(
                   'Play With AI',
@@ -72,8 +72,8 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   },
                   Colors.green,
                 ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: 20.h,
                 ),
                 buildButton(
                   'Play With \nFriend Offline',
@@ -87,8 +87,8 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   },
                   Colors.blue,
                 ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: 20.h,
                 ),
                 buildButton(
                   'Play With\nFriend Online',
@@ -102,8 +102,8 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   },
                   Colors.red,
                 ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: 20.h,
                 ),
               ],
             ),
@@ -115,23 +115,23 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
 
   Widget buildButton(String text, voidCallback, color) {
     return SizedBox(
-      height: 80,
+      height: 120.h,
       child: ElevatedButton(
         onPressed: voidCallback,
         style: ButtonStyle(
           shape: MaterialStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
             ),
           ),
         ),
         child: ListTile(
           leading: Container(
-            height: 50,
-            width: 50,
+            height: 50.h,
+            width: 50.w,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: const Icon(
               Icons.circle_outlined,
@@ -140,17 +140,15 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
           ),
           title: Row(
             children: [
-              const SizedBox(
-                width: 10,
+              SizedBox(
+                width: 10.w,
               ),
-              AutoSizeText(
+              Text(
                 text,
                 maxLines: 2,
-                maxFontSize: 30,
-                minFontSize: 10,
-                style: const TextStyle(
+                style: TextStyle(
+                  fontSize: 24.sp,
                   fontFamily: 'PermanentMarker',
-                  fontWeight: FontWeight.normal,
                 ),
                 textAlign: TextAlign.center,
               ),

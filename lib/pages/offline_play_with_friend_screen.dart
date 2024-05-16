@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:action_slider/action_slider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../classes/one_tap_register_class.dart';
 import '../widgets/who_vs_who_widget.dart';
 
@@ -45,30 +46,30 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             const RoundInfoWidget(
               isHost: true,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Container(
               width: MediaQuery.of(context).size.width * 0.80,
               alignment: Alignment.center,
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(8.r),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 color: Colors.grey[300],
               ),
               child: Text(
                 isPlayer1 ? 'X -- Turn' : 'O -- Turn',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(
-              height: 6,
+            SizedBox(
+              height: 6.h,
             ),
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 color: Colors.white,
               ),
               padding: const EdgeInsets.all(4),
@@ -91,13 +92,13 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                 ),
               ),
             ),
-            const SizedBox(
-              height: 30,
+            SizedBox(
+              height: 30.h,
             ),
             Container(
                 width: MediaQuery.of(context).size.width * 0.70,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(30.r),
                   color: Colors.white,
                 ),
                 child: ActionSlider.standard(
@@ -105,17 +106,17 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                     controller.reset();
                     resetGame();
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.refresh,
                     color: Colors.white,
-                    size: 30,
+                    size: 30.sp,
                   ),
                   toggleColor: Colors.blue,
-                  child: const Text(
+                  child: Text(
                     'Reset Game',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 24,
+                      fontSize: 24.sp,
                       fontFamily: 'PermanentMarker',
                     ),
                   ),
@@ -152,7 +153,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             color: Colors.green,
             boxShadow: const [],
           ),
@@ -167,7 +168,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: Image.asset(
@@ -182,7 +183,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         child: Container(
           decoration: BoxDecoration(
             color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
           child: const Center(child: Text('')),
