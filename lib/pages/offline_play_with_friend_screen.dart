@@ -14,7 +14,8 @@ class YouVsFriendScreen extends StatefulWidget {
   State<YouVsFriendScreen> createState() => _YouVsFriendScreenState();
 }
 
-class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProviderStateMixin {
+class _YouVsFriendScreenState extends State<YouVsFriendScreen>
+    with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
   late bool isPlayer1;
 
@@ -59,7 +60,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
               ),
               child: Text(
                 isPlayer1 ? 'X -- Turn' : 'O -- Turn',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(
@@ -124,6 +125,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
       ),
     );
   }
+
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     return GestureDetector(
       onTap: () {
@@ -136,17 +138,13 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
             }
             isPlayer1 = !isPlayer1;
           });
-          if (isBoardFull()) {
-            checkWin();
-          }
-          checkWin();
-        } else {
-          checkWin();
         }
+        checkWin();
       },
       child: Card(child: iconDecider(cellValue)),
     );
   }
+
   Widget iconDecider(String value) {
     //bool isWinningMove = value.endsWith('_win');
     if (value.replaceAll('_win', '') == 'X') {
@@ -192,6 +190,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
       );
     }
   }
+
   void checkWin() {
     String winner = '';
     if (gameBoard[0][0] == gameBoard[0][1] &&
@@ -260,11 +259,13 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
           }).show();
     }
   }
+
   void animateWin(int row1, int col1, int row2, int col2, int row3, int col3) {
     gameBoard[row1][col1] += '_win';
     gameBoard[row2][col2] += '_win';
     gameBoard[row3][col3] += '_win';
   }
+
   bool isBoardFull() {
     for (var row in gameBoard) {
       for (var cell in row) {
@@ -275,6 +276,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen> with TickerProvid
     }
     return true;
   }
+
   void resetGame() {
     setState(() {
       initializeBoard();

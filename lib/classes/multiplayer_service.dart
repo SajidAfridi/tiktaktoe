@@ -53,7 +53,6 @@ class MultiplayerService {
   }
 
   void resetGame(int roomCode) {
-    print('Resetting the room with code: $roomCode');
     socket.emit('message', {
       'type': 'resetRoom',
       'code': roomCode,

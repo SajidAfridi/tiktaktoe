@@ -4,12 +4,12 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiktaktoe/classes/online_player_class.dart';
+import 'package:tiktaktoe/pages/join_or_create_screen.dart';
 import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
 import '../classes/game_logic.dart';
 import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-
 import '../widgets/who_vs_who_widget.dart';
 
 class MultiplayerScreen extends StatefulWidget {
@@ -63,81 +63,99 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RoundInfoWidget(
-              isHost: widget.isHost,
-            ),
-            const SizedBox(height: 30),
-            if (widget.isHost)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  alignment: Alignment.center,
-                  height: 50,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.brown
-                        .withOpacity(0.5), //Colors.brown.withOpacity(0.5),
-                  ),
-                  child: Text(
-                    'Room Code: ${widget.room.code}',
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.normal,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (value) {
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context){
+          return const CreateOrJoinScreen();
+        }), (route) => false);
+      },
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RoundInfoWidget(
+                isHost: widget.isHost,
+              ),
+              const SizedBox(height: 30),
+              if (widget.isHost)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 50,
+                    width: double.maxFinite,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.brown
+                          .withOpacity(0.5), //Colors.brown.withOpacity(0.5),
+                    ),
+                    child: Text(
+                      'Room Code: ${widget.room.code}',
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.normal,
+                      ),
                     ),
                   ),
                 ),
+              const SizedBox(height: 16),
+              //stream builder with the stream from the provider
+              StreamBuilder<Room>(
+                stream: roomUpdates,
+                builder: (context, snapshot) {
+                  String whoseTurn ='';
+                  if (snapshot.data == null) {
+                    return const SizedBox(
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    whoseTurn = '';
+                    String symbol = widget.isHost ? 'X' : 'O';
+                    if(snapshot.data!.turn==0&&symbol=='X'){
+                      whoseTurn = 'Opponent\'s Turn';
+                    }
+                    else if(snapshot.data!.turn==1&&symbol=='O'){
+                      whoseTurn = 'Opponent\'s Turn';
+                    }
+                    else{
+                      whoseTurn = 'Your\'s Turn';
+                    }
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      updateGameBoard(snapshot.data!);
+                    });
+                  }
+                  return TurnIndicator(turnMessage: whoseTurn);
+                },
               ),
-            const SizedBox(height: 16),
-            //stream builder with the stream from the provider
-            StreamBuilder<Room>(
-              stream: roomUpdates,
-              builder: (context, snapshot) {
-                if (snapshot.data == null) {
-                  return const SizedBox(
-                    height: 30,
-                    child: Text('Waiting for opponent to join...'),
-                  );
-                }
-                if (snapshot.hasData) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    updateGameBoard(snapshot.data!);
-                  });
-                }
-                return const SizedBox();
-              },
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-              ),
-              padding: const EdgeInsets.all(4),
-              child: OnlyOnePointerRecognizerWidget(
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                ),
+                padding: const EdgeInsets.all(4),
+                child:  OnlyOnePointerRecognizerWidget(
+                  child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 5,
+                      mainAxisSpacing: 5,
+                    ),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      final rowIndex = index ~/ 3;
+                      final colIndex = index % 3;
+                      final cellValue = gameBoard[rowIndex][colIndex];
+                      return buildGridCell(rowIndex, colIndex, cellValue);
+                    },
+                    itemCount: 9,
                   ),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final rowIndex = index ~/ 3;
-                    final colIndex = index % 3;
-                    final cellValue = gameBoard[rowIndex][colIndex];
-                    return buildGridCell(rowIndex, colIndex, cellValue);
-                  },
-                  itemCount: 9,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -240,10 +258,12 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     );
   }
   void updateGameBoard(Room room) {
+
     setState(() {
+      //along the gameBoard we will also update the turn
       gameBoard = room.moves.fold<List<List<String>>>(
         List.generate(3, (_) => List.filled(3, '')),
-        (board, move) {
+            (board, move) {
           final moveParts = move.move.split(',');
           final rowIndex = int.parse(moveParts[0]);
           final colIndex = int.parse(moveParts[1]);
@@ -260,9 +280,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     if(winner=="Draw"){
       AwesomeDialog(
         context: context,
-        dialogType: DialogType.success,
+        dialogType: DialogType.infoReverse,
         animType: AnimType.bottomSlide,
-        title: 'Match Draw🤦‍♂️!',
+        title: 'Match Drawn🤦‍♂️!',
         desc: 'Try Again',
         headerAnimationLoop: false,
         btnCancel: ElevatedButton(
@@ -282,15 +302,15 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       return;
     }
     else if (winner == symbol) {
-      who = 'You';
+      who = 'You Won';
     } else {
-      who = 'you loose';
+      who = 'You Loss';
     }
     AwesomeDialog(
       context: context,
-      dialogType: DialogType.success,
+      dialogType: who=='You Won'?DialogType.success:DialogType.error,
       animType: AnimType.bottomSlide,
-      title: '$who Won!',
+      title: '$who!',
       desc: 'Play Again',
       headerAnimationLoop: false,
       btnCancel: ElevatedButton(
@@ -308,10 +328,36 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       },
     ).show();
   }
-
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
+  }
+}
+
+
+class TurnIndicator extends StatelessWidget {
+  final String turnMessage;
+
+  TurnIndicator({required this.turnMessage});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        turnMessage,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
   }
 }

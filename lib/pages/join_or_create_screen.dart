@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
+import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
 import '../classes/online_player_class.dart';
 
 class CreateOrJoinScreen extends StatefulWidget {
@@ -12,6 +15,7 @@ class CreateOrJoinScreen extends StatefulWidget {
 }
 
 class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
+  bool isButtonEnabled = true;
   String? receivedCode;
   FocusNode textFocus = FocusNode();
   TextEditingController codeController = TextEditingController();
@@ -38,83 +42,96 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(
-              'assets/images/bg_image.jpg',
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (value) {
+        socket.disconnect();
+        Navigator.pushAndRemoveUntil(
+            context, MaterialPageRoute(builder: (context) {
+          return const SelectDifficultyScreen();
+        }), (route) => false);
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(
+                'assets/images/bg_image.jpg',
+              ),
+              fit: BoxFit.cover,
             ),
-            fit: BoxFit.cover,
           ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 50,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                const Text(
-                  'Tic Tak Toe',
-                  style: TextStyle(
-                    fontFamily: 'PermanentMarker',
-                    fontSize: 40,
-                    fontWeight: FontWeight.normal,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 50,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 20,
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const Text(
-                  'Create Or Join Room',
-                  style: TextStyle(
-                    fontFamily: 'PermanentMarker',
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
+                  const Text(
+                    'Tic Tak Toe',
+                    style: TextStyle(
+                      fontFamily: 'PermanentMarker',
+                      fontSize: 40,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
-                buildButton('Create Room', () {
-                  // Emit message with room creation data
-                  createRoom();
-                  //Listen for server response about room creation
-                  socket.on('RoomCreated', (data) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MultiplayerScreen(
-                          room: Room(
-                            // Extract details from server response (assuming data structure)
-                            code: data,
-                            players: [
-                              Player(symbol: 'X', move: '0', socketId: ''),
-                              Player(symbol: 'O', move: '0', socketId: ''),
-                            ],
-                            // Player2 details
-                            turn: 0, moves: [],
-                          ),
-                          isHost: true,
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Text(
+                    'Create Or Join Room',
+                    style: TextStyle(
+                      fontFamily: 'PermanentMarker',
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 40,
+                  ),
+                  buildButton('Create Room', () {
+                    // Emit message with room creation data
+                    createRoom();
+                    //Listen for server response about room creation
+                    socket.on('RoomCreated', (data) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MultiplayerScreen(
+                                room: Room(
+                                  // Extract details from server response (assuming data structure)
+                                  code: data,
+                                  players: [
+                                    Player(
+                                        symbol: 'X', move: '0', socketId: ''),
+                                    Player(
+                                        symbol: 'O', move: '0', socketId: ''),
+                                  ],
+                                  // Player2 details
+                                  turn: 0, moves: [],
+                                ),
+                                isHost: true,
+                              ),
                         ),
-                      ),
-                    );
-                  });
-                }),
-                const SizedBox(
-                  height: 20,
-                ),
-                buildButton('Join Room', () {
-                  _showJoinDialog(context);
-                  FocusScope.of(context).requestFocus(textFocus);
-                }),
-              ],
+                      );
+                    });
+                  }),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  buildButton('Join Room', () {
+                    _showJoinDialog(context);
+                    FocusScope.of(context).requestFocus(textFocus);
+                  }),
+                ],
+              ),
             ),
           ),
         ),
@@ -126,14 +143,18 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
     return SizedBox(
       height: 80,
       child: ElevatedButton(
-        onPressed: voidCallback,
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-        ),
+        onPressed: isButtonEnabled ? () {
+          voidCallback();
+          setState(() {
+            isButtonEnabled = false;
+          });
+          Timer(const Duration(seconds: 3), () {
+            setState(() {
+              isButtonEnabled = true;
+            });
+          });
+        } : null,
+
         child: ListTile(
           splashColor: colorDecider(text),
           leading: Container(
@@ -196,14 +217,15 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
               ),
             ),
             content: TextField(
-              focusNode: textFocus, // Assign the FocusNode to the TextField
+              focusNode: textFocus,
+              // Assign the FocusNode to the TextField
               controller: codeController,
               decoration: const InputDecoration(
                 labelText: 'Enter Room Code',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              onSubmitted: (value) async{
+              onSubmitted: (value) async {
                 FocusScope.of(context).unfocus();
                 // Reset focus within the dialog
                 FocusScope.of(context).requestFocus(FocusNode());
@@ -220,18 +242,19 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MultiplayerScreen(
-                        room: Room(
-                          code: data,
-                          turn: 1,
-                          moves: [],
-                          players: [
-                            Player(symbol: '', move: '0', socketId: ''),
-                            Player(symbol: 'O', move: '0', socketId: ''),
-                          ],
-                        ),
-                        isHost: false,
-                      ),
+                      builder: (context) =>
+                          MultiplayerScreen(
+                            room: Room(
+                              code: data,
+                              turn: 1,
+                              moves: [],
+                              players: [
+                                Player(symbol: '', move: '0', socketId: ''),
+                                Player(symbol: 'O', move: '0', socketId: ''),
+                              ],
+                            ),
+                            isHost: false,
+                          ),
                     ),
                   );
                 });
@@ -266,18 +289,19 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MultiplayerScreen(
-                          room: Room(
-                            code: data,
-                            turn: 1,
-                            moves: [],
-                            players: [
-                              Player(symbol: '', move: '0', socketId: ''),
-                              Player(symbol: 'O', move: '0', socketId: ''),
-                            ],
-                          ),
-                          isHost: false,
-                        ),
+                        builder: (context) =>
+                            MultiplayerScreen(
+                              room: Room(
+                                code: data,
+                                turn: 1,
+                                moves: [],
+                                players: [
+                                  Player(symbol: '', move: '0', socketId: ''),
+                                  Player(symbol: 'O', move: '0', socketId: ''),
+                                ],
+                              ),
+                              isHost: false,
+                            ),
                       ),
                     );
                   });
@@ -297,12 +321,14 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   }
 
 
-  void createRoom() {
-    socket.emit('message', {
-      'type': 'create',
-      'turn': 0,
-      'symbol': 'X',
-      'move': '0',
+  Future<void> createRoom() async {
+    return Future.delayed(const Duration(seconds: 2), () {
+      socket.emit('message', {
+        'type': 'create',
+        'turn': 0,
+        'symbol': 'X',
+        'move': '0',
+      });
     });
   }
 }

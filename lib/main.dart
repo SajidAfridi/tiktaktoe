@@ -18,10 +18,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(create: (context) => MultiplayerService('https://spiny-trite-breeze.glitch.me/')),
+        Provider(
+            create: (context) =>
+                MultiplayerService('https://spiny-trite-breeze.glitch.me/')),
       ],
       child: MaterialApp(
-        title: 'TikTakToe',
+        debugShowCheckedModeBanner: false,
+        title: 'Tic Tak Toe',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
