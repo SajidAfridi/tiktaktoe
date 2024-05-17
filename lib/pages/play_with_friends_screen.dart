@@ -51,10 +51,21 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           data.toString(); // Assuming the winner symbol is sent as a string
       checkWin(winner);
     });
+    //socket.on Room Terminated it should navigate to the previous screen
+    socket.on('Room Terminated', (data) {
+      print('Room Terminated');
+      //snake bar to show the room is terminated
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Room Terminated'),
+        duration: Duration(seconds: 2),
+      ));
+      Navigator.pop(context);
+    });
   }
 
   @override
   void dispose() {
+    socket.emit('disconnect', widget.room.code);
     // Close the StreamController when it's no longer needed
     _roomController.close();
     super.dispose();
@@ -112,10 +123,10 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 builder: (context, snapshot) {
                   String whoseTurn = '';
                   if (snapshot.data == null) {
-                    return const SizedBox();
+                    return TurnIndicator(turnMessage: widget.isHost?'Your\'s turn':'Opponent\'s turn');
                   }
                   if (snapshot.hasData) {
-                    whoseTurn = '';
+                    whoseTurn = 'Your\'s turn';
                     String symbol = widget.isHost ? 'X' : 'O';
                     if (snapshot.data!.turn == 0 && symbol == 'X') {
                       whoseTurn = 'Opponent\'s Turn';

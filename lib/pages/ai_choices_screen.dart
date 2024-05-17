@@ -143,7 +143,7 @@ class _SelectDifficultyScreenState extends State<AIModeScreen> {
                 text,
                 maxLines: 1,
                 style: TextStyle(
-                  fontSize: 24.sp,
+                  fontSize: 30.sp,
                   fontFamily: 'PermanentMarker',
                   fontWeight: FontWeight.normal,
                 ),
