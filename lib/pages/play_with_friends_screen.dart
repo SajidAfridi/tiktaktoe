@@ -31,6 +31,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   late IO.Socket socket;
   var gameBoard = GameLogic.initializeGameBoard();
   late StreamController<Room> _roomController;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -51,21 +52,39 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           data.toString(); // Assuming the winner symbol is sent as a string
       checkWin(winner);
     });
-    //socket.on Room Terminated it should navigate to the previous screen
-    socket.on('Room Terminated', (data) {
-      print('Room Terminated');
-      //snake bar to show the room is terminated
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Room Terminated'),
+    socket.on('Successfully Joined', (data) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Opponent has joined the game'),
         duration: Duration(seconds: 2),
       ));
-      Navigator.pop(context);
     });
+    socket.on('OpponentLeft', (_) {
+      const snackBar = SnackBar(
+        content: Text('Opponent Left the room'),
+        duration: Duration(seconds: 2),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((_) {
+        // Navigate to a new screen or perform any other action here
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateOrJoinScreen()),
+            (route) => false);
+      });
+    });
+    // Handle the disconnection here, e.g., update UI or navigate to another screen
   }
 
   @override
   void dispose() {
-    socket.emit('disconnect', widget.room.code);
+    socket.emit('message', {
+      'type': 'OpponentLeft',
+      'code': widget.room.code,
+      'turn': 0,
+    });
     // Close the StreamController when it's no longer needed
     _roomController.close();
     super.dispose();
@@ -81,10 +100,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     return PopScope(
       canPop: false,
       onPopInvoked: (value) {
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const CreateOrJoinScreen();
-        }), (route) => false);
+        onWillPop(context);
       },
       child: Scaffold(
         body: Center(
@@ -123,7 +139,23 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 builder: (context, snapshot) {
                   String whoseTurn = '';
                   if (snapshot.data == null) {
-                    return TurnIndicator(turnMessage: widget.isHost?'Your\'s turn':'Opponent\'s turn');
+                    return isLoading?
+                    const Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Waiting for Opponent...'),
+                          SizedBox(width: 10.0),
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation(Colors.blueAccent),
+                          ),
+                        ],
+                      ),
+                    )
+                        :TurnIndicator(
+                        turnMessage: widget.isHost
+                            ? 'Your\'s turn'
+                            : 'Opponent\'s turn');
                   }
                   if (snapshot.hasData) {
                     whoseTurn = 'Your\'s turn';
@@ -188,7 +220,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       multiplayerService.sendMove(widget.room.code, newMovement);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('It is not your turn'),
+        content: Text('Move is not registered'),
         duration: Duration(seconds: 2),
       ));
     }
@@ -354,6 +386,72 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
   }
+
+  Future<bool> onWillPop(BuildContext context) async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => CustomAlertDialog(
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24.0, 20.0, 0.0, 0.0),
+              child: Text(
+                'Leave Room',
+                style: TextStyle(
+                  fontSize: 30.0.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 20.0, 0.0, 0.0),
+              child: Icon(
+                Icons.question_mark,
+                size: 30.sp,
+                color: Colors.blueAccent,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to leave the room?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const CreateOrJoinScreen()),
+                (route) => false),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            child: const Text(
+              'Leave',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                side: const BorderSide(color: Colors.red),
+              ),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 }
 
 class TurnIndicator extends StatelessWidget {
@@ -377,6 +475,33 @@ class TurnIndicator extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+}
+
+class CustomAlertDialog extends StatelessWidget {
+  final Widget title;
+  final Widget content;
+  final List<Widget> actions;
+
+  const CustomAlertDialog({
+    Key? key,
+    required this.title,
+    required this.content,
+    required this.actions,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      titlePadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 16.0),
+      title: title,
+      content: content,
+      actions: actions,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
       ),
     );
   }

@@ -147,7 +147,7 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                 text,
                 maxLines: 2,
                 style: TextStyle(
-                  fontSize: 24.sp,
+                  fontSize: 23.sp,
                   fontFamily: 'PermanentMarker',
                 ),
                 textAlign: TextAlign.center,
