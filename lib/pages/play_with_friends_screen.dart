@@ -56,7 +56,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Opponent has joined the game'),
         duration: Duration(seconds: 2),
       ));
@@ -139,7 +139,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 builder: (context, snapshot) {
                   String whoseTurn = '';
                   if (snapshot.data == null) {
-                    return isLoading?
+                    return isLoading&&!widget.isHost?
                     const Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -454,28 +454,68 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   }
 }
 
-class TurnIndicator extends StatelessWidget {
+class TurnIndicator extends StatefulWidget {
   final String turnMessage;
 
   const TurnIndicator({super.key, required this.turnMessage});
 
   @override
+  State<TurnIndicator> createState() => _TurnIndicatorState();
+}
+
+class _TurnIndicatorState extends State<TurnIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+    AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))
+      ..repeat(reverse: true);
+
+    _colorAnimation = ColorTween(
+      begin: Colors.lightBlue,
+      end: Colors.blueAccent,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(10.r),
-      margin: EdgeInsets.all(10.r),
-      decoration: BoxDecoration(
-        color: Colors.blueAccent,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Text(
-        turnMessage,
-        style: TextStyle(
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: _colorAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                _colorAnimation.value!.withOpacity(0.8),
+                _colorAnimation.value!,
+              ],
+            ),
+          ),
+          child: Text(
+            widget.turnMessage,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
     );
   }
 }
