@@ -57,35 +57,24 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       setState(() {
         isLoading = false;
       });
-      final materialBanner = SnackBar(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        duration: const Duration(milliseconds: 600),
-        content: AwesomeSnackbarContent(
-          titleFontSize: 22.sp,
-          messageFontSize: 18.sp,
-          title: 'Opponent Join the room!',
-          message:
-          'You can now start the game.',
-          contentType: ContentType.success,
-          // to configure for material banner
-          inMaterialBanner: true,
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            duration: const Duration(milliseconds: 1000),
+            content: AwesomeSnackbarContent(
+              titleFontSize: 22.sp,
+              messageFontSize: 18.sp,
+              title: 'Opponent Join the room!',
+              message:
+              'You can now start the game.',
+              contentType: ContentType.success,
+              // to configure for material banner
+              inMaterialBanner: true,
+            ),
+          )
       );
-      ScaffoldMessenger.of(context)
-          .hideCurrentSnackBar();
-      ScaffoldMessenger.of(context)
-          .showSnackBar(materialBanner)
-          .closed
-          .then((_) {
-        // Navigate to a new screen or perform any other action here
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const CreateOrJoinScreen()),
-              (route) => false,
-        );
-      });
     });
     socket.on('OpponentLeft', (_) {
       final materialBanner = SnackBar(
@@ -262,35 +251,23 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       // Send the move to the server (unchanged)
       multiplayerService.sendMove(widget.room.code, newMovement);
     } else {
-      final materialBanner = SnackBar(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        duration: const Duration(seconds: 3),
-        content: AwesomeSnackbarContent(
-          titleFontSize: 22.sp,
-          messageFontSize: 18.sp,
-          title: 'Invalid Move!',
-          message:
-          'Please select an empty cell to make a move.',
-          contentType: ContentType.warning,
-          // to configure for material banner
-          inMaterialBanner: true,
-        ),
-      );
-      ScaffoldMessenger.of(context)
-          .hideCurrentSnackBar();
-      ScaffoldMessenger.of(context)
-          .showSnackBar(materialBanner)
-          .closed
-          .then((_) {
-        // Navigate to a new screen or perform any other action here
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const CreateOrJoinScreen()),
-              (route) => false,
-        );
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            duration: const Duration(milliseconds: 1000),
+            content: AwesomeSnackbarContent(
+              titleFontSize: 22.sp,
+              messageFontSize: 18.sp,
+              title: 'Invalid Move',
+              message:
+              'This cell is already occupied. Please select another cell.',
+              contentType: ContentType.failure,
+              // to configure for material banner
+              inMaterialBanner: true,
+            ),
+          ));
     }
   }
 
