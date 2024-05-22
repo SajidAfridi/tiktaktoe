@@ -3,6 +3,7 @@ import 'package:action_slider/action_slider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
 import '../classes/one_tap_register_class.dart';
 import '../widgets/who_vs_who_widget.dart';
 
@@ -51,19 +52,10 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
               isHost: true,
             ),
             SizedBox(height: 16.h),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.80,
-              alignment: Alignment.center,
-              padding: EdgeInsets.all(8.r),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.r),
-                color: Colors.grey[300],
-              ),
-              child: Text(
-                isPlayer1 ? 'X -- Turn' : 'O -- Turn',
-                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-              ),
-            ),
+            TurnIndicator(
+                turnMessage: isPlayer1
+                    ? 'Player 1 turn'
+                    : 'Player 2 turn'),
             SizedBox(
               height: 6.h,
             ),
@@ -285,3 +277,4 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     });
   }
 }
+

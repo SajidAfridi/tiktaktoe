@@ -19,6 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
   awesome_dialog:
+  awesome_snackbar_content: 
   audioplayers:
   animate_do:
   action_slider: ^0.7.0

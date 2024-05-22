@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -257,11 +258,35 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                   );
                 });
                 socket.on('Unsuccessfully Joined', (data) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(data),
+                  final materialBanner = SnackBar(
+                    elevation: 0,
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.transparent,
+                    duration: const Duration(seconds: 3),
+                    content: AwesomeSnackbarContent(
+                      titleFontSize: 22.sp,
+                      messageFontSize: 18.sp,
+                      title: 'Unsuccessful Join',
+                      message:
+                      'The room code you entered is invalid. Please try again.',
+                      contentType: ContentType.warning,
+                      // to configure for material banner
+                      inMaterialBanner: true,
                     ),
                   );
+                  ScaffoldMessenger.of(context)
+                      .hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(materialBanner)
+                      .closed
+                      .then((_) {
+                    // Navigate to a new screen or perform any other action here
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CreateOrJoinScreen()),
+                          (route) => false,
+                    );
+                  });
                 });
               },
             ),
@@ -300,13 +325,6 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
                               ),
                               isHost: false,
                             ),
-                      ),
-                    );
-                  });
-                  socket.on('Unsuccessfully Joined', (data) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(data),
                       ),
                     );
                   });
