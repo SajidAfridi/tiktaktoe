@@ -3,8 +3,8 @@ import 'package:action_slider/action_slider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
 import '../classes/one_tap_register_class.dart';
+import '../widgets/turn_indicator_widget.dart';
 import '../widgets/who_vs_who_widget.dart';
 
 class YouVsFriendScreen extends StatefulWidget {
@@ -42,52 +42,65 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 16.h),
-            const RoundInfoWidget(
-              isHost: true,
-            ),
-            SizedBox(height: 16.h),
-            TurnIndicator(
-                turnMessage: isPlayer1
-                    ? 'Player 1 turn'
-                    : 'Player 2 turn'),
-            SizedBox(
-              height: 6.h,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.r),
-                color: Colors.white,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color(0xff3c0384),
+        body: Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 20.h,
               ),
-              padding: const EdgeInsets.all(4),
-              child: OnlyOnePointerRecognizerWidget(
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                  ),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    final rowIndex = index ~/ 3;
-                    final colIndex = index % 3;
-                    final cellValue = gameBoard[rowIndex][colIndex];
-                    return buildGridCell(rowIndex, colIndex, cellValue);
-                  },
-                  itemCount: 9,
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  children: [
+                    const RoundInfoForFriendsOffline(),
+                    SizedBox(height: 16.h),
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: TurnIndicator(
+                        turnMessage:
+                            isPlayer1 ? 'Player 1 Turn' : 'Player 2 Turn',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SizedBox(
-              height: 30.h,
-            ),
-            Container(
+              SizedBox(
+                height: 20.h,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: const Color(0xff4ffaff),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: OnlyOnePointerRecognizerWidget(
+                  child: GridView.builder(
+                    padding: EdgeInsets.all(6.r),
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 5,
+                      mainAxisSpacing: 5,
+                    ),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      final rowIndex = index ~/ 3;
+                      final colIndex = index % 3;
+                      final cellValue = gameBoard[rowIndex][colIndex];
+                      return buildGridCell(rowIndex, colIndex, cellValue);
+                    },
+                    itemCount: 9,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 40.h,
+              ),
+              Container(
                 width: MediaQuery.of(context).size.width * 0.70,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30.r),
@@ -98,22 +111,25 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                     controller.reset();
                     resetGame();
                   },
+                  backgroundColor: Colors.white,
                   icon: Icon(
                     Icons.refresh,
                     color: Colors.white,
                     size: 30.sp,
                   ),
-                  toggleColor: Colors.blue,
+                  toggleColor: const Color(0xff3c0384),
                   child: Text(
-                    'Reset Game',
+                    'Slide to reset',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 24.sp,
+                      fontSize: 20.sp,
                       fontFamily: 'PermanentMarker',
                     ),
                   ),
-                )),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -146,7 +162,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.r),
-            color: Colors.green,
+            color: Colors.blue,
             boxShadow: const [],
           ),
           child: Image.asset(
@@ -174,7 +190,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
         duration: const Duration(milliseconds: 300),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: const Color(0xff2e0266),
             borderRadius: BorderRadius.circular(15.r),
             boxShadow: const [],
           ),
@@ -229,7 +245,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     }
 
     if (winner.isNotEmpty) {
-      String who = winner == 'X' ? 'X' : 'O';
+      String who = winner == 'X' ? 'Player 1' : 'Player 2';
       AwesomeDialog(
           context: context,
           dialogType: DialogType.success,
@@ -277,4 +293,3 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     });
   }
 }
-

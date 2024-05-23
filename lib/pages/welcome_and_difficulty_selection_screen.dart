@@ -38,7 +38,7 @@ class _SelectDifficultyScreenState extends State<SelectDifficultyScreen> {
                   height: 20.h,
                 ),
                 Text(
-                  'Tic Tak Toe',
+                  'Tic Tac Toe',
                   style: TextStyle(
                     fontFamily: 'PermanentMarker',
                     fontSize: 40.h,

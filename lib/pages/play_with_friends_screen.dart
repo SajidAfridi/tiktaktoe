@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:tiktaktoe/classes/online_player_class.dart';
@@ -12,6 +14,7 @@ import '../classes/game_logic.dart';
 import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../widgets/turn_indicator_widget.dart';
 import '../widgets/who_vs_who_widget.dart';
 
 class MultiplayerScreen extends StatefulWidget {
@@ -33,6 +36,11 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   var gameBoard = GameLogic.initializeGameBoard();
   late StreamController<Room> _roomController;
   bool isLoading = true;
+  List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+
+
 
   @override
   void initState() {
@@ -77,6 +85,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     });
     socket.on('OpponentLeft', (_) {
+      print('Opponent left the room');
       final materialBanner = SnackBar(
         elevation: 0,
         behavior: SnackBarBehavior.floating,
@@ -108,6 +117,10 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       });
     });
     // Handle the disconnection here, e.g., update UI or navigate to another screen
+    initConnectivity();
+
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   @override
@@ -119,6 +132,8 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     });
     // Close the StreamController when it's no longer needed
     _roomController.close();
+    _connectivitySubscription.cancel();
+    socket.dispose();
     super.dispose();
   }
 
@@ -497,71 +512,31 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     );
     return result ?? false;
   }
-}
+  Future<void> initConnectivity() async {
+    late List<ConnectivityResult> result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status, error: $e');
+      return;
+    }
 
-class TurnIndicator extends StatefulWidget {
-  final String turnMessage;
-
-  const TurnIndicator({super.key, required this.turnMessage});
-
-  @override
-  State<TurnIndicator> createState() => _TurnIndicatorState();
-}
-
-class _TurnIndicatorState extends State<TurnIndicator>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Color?> _colorAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller =
-    AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))
-      ..repeat(reverse: true);
-
-    _colorAnimation = ColorTween(
-      begin: Colors.lightBlue,
-      end: Colors.blueAccent,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+    return _updateConnectionStatus(result);
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _colorAnimation,
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.all(10),
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _colorAnimation.value!.withOpacity(0.8),
-                _colorAnimation.value!,
-              ],
-            ),
-          ),
-          child: Text(
-            widget.turnMessage,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        );
-      },
-    );
+  Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+    // ignore: avoid_print
+    print('Connectivity changed: $_connectionStatus');
   }
 }
 

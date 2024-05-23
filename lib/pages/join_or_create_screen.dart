@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:tiktaktoe/pages/play_with_friends_screen.dart';
@@ -19,6 +21,10 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   String? receivedCode;
   FocusNode textFocus = FocusNode();
   TextEditingController codeController = TextEditingController();
+  List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+
 
   final IO.Socket socket = IO.io(
       'https://spiny-trite-breeze.glitch.me/',
@@ -31,6 +37,10 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   void initState() {
     initSocket();
     super.initState();
+    initConnectivity();
+
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   void initSocket() {
@@ -38,6 +48,13 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
     socket.onConnect((_) {
       print('Connection established');
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _connectivitySubscription.cancel();
+    socket.dispose();
   }
 
   @override
@@ -140,21 +157,38 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
   }
 
   Widget buildButton(String text, voidCallback) {
-    return SizedBox(
+    return Container(
       height: 100.h,
+      padding: EdgeInsets.symmetric(
+        horizontal: 0.h,
+      ),
       child: ElevatedButton(
         onPressed: isButtonEnabled ? () {
-          voidCallback();
-          setState(() {
-            isButtonEnabled = false;
-          });
-          Timer(const Duration(seconds: 3), () {
+          if (_connectionStatus.contains(ConnectivityResult.none)) {
+            final snackBar = SnackBar(
+              elevation: 0,
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.transparent,
+              duration: const Duration(seconds: 3),
+              content: AwesomeSnackbarContent(
+                title: 'No Internet Connection',
+                message: 'Please check your internet connection and try again.',
+                contentType: ContentType.failure,
+              ),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          } else {
+            voidCallback();
             setState(() {
-              isButtonEnabled = true;
+              isButtonEnabled = false;
             });
-          });
+            Timer(const Duration(seconds: 4), () {
+              setState(() {
+                isButtonEnabled = true;
+              });
+            });
+          }
         } : null,
-
         child: ListTile(
           splashColor: colorDecider(text),
           leading: Container(
@@ -176,9 +210,9 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
               ),
               Text(
                 text,
-                maxLines: 1,
+                maxLines: 2,
                 style: TextStyle(
-                  fontSize: 24.sp,
+                  fontSize: 23.sp,
                   fontFamily: 'PermanentMarker',
                   fontWeight: FontWeight.normal,
                 ),
@@ -346,5 +380,65 @@ class _CreateOrJoinScreenState extends State<CreateOrJoinScreen> {
         'move': '0',
       });
     });
+  }
+
+  Future<void> initConnectivity() async {
+    late List<ConnectivityResult> result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status, error: $e');
+      return;
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+
+    if (_connectionStatus.contains(ConnectivityResult.none)) {
+      final materialBanner = SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        duration: const Duration(seconds: 3),
+        content: AwesomeSnackbarContent(
+          titleFontSize: 22.sp,
+          messageFontSize: 18.sp,
+          title: 'No Internet Connection',
+          message:
+          'Please check your internet connection and try again.',
+          contentType: ContentType.failure,
+          // to configure for material banner
+          inMaterialBanner: true,
+        ),
+      );
+      ScaffoldMessenger.of(context)
+          .hideCurrentSnackBar();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(materialBanner)
+          .closed
+          .then((_) {
+        // Navigate to a new screen or perform any other action here
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const SelectDifficultyScreen()),
+              (route) => false,
+        );
+      });
+    }
+
+    // ignore: avoid_print
+    print('Connectivity changed: $_connectionStatus');
   }
 }

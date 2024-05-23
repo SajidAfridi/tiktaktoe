@@ -23,6 +23,8 @@ dependencies:
   audioplayers:
   animate_do:
   action_slider: ^0.7.0
+  connectivity_plus:
+  glassmorphism:
   socket_io:
   auto_size_text:
   socket_io_client: ^1.0.2
