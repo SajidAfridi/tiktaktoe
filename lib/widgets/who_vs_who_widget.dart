@@ -107,7 +107,7 @@ class RoundInfoForFriendsOffline extends StatelessWidget {
     return Column(
       children: [
         CircleAvatar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.white,
           radius: 50.r,
           backgroundImage: AssetImage(image),
         ),

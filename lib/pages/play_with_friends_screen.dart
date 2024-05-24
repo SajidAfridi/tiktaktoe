@@ -39,7 +39,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
-
+  bool isAvailableToMakeMove = true;
 
 
   @override
@@ -201,8 +201,8 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                     )
                         :TurnIndicator(
                         turnMessage: widget.isHost
-                            ? 'Your\'s turn'
-                            : 'Opponent\'s turn');
+                            ? 'Your\'s Turn'
+                            : 'Opponent\'s Turn');
                   }
                   if (snapshot.hasData) {
                     whoseTurn = 'Your\'s turn';
@@ -290,12 +290,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     final symbol = gameBoard[rowIndex][colIndex];
     return GestureDetector(
       onTap: () {
-        _handleTap('$rowIndex,$colIndex');
+        if(isAvailableToMakeMove){
+          _handleTap('$rowIndex,$colIndex');
+        }
       },
       child: Card(child: iconDecider(symbol)),
     );
   }
-
   Widget iconDecider(String symbol) {
     if (symbol == 'X') {
       return FadeOutUp(
@@ -340,7 +341,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
-
   Widget buildGameBoard(List<List<String>> gameBoard) {
     return Container(
       decoration: BoxDecoration(
@@ -366,7 +366,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ),
     );
   }
-
   void updateGameBoard(Room room) {
     setState(() {
       //along the gameBoard we will also update the turn
@@ -382,7 +381,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     });
   }
-
   void checkWin(String winner) {
     String symbol =
         widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
@@ -390,6 +388,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
 
     if (winner == "Draw") {
       AwesomeDialog(
+        onDismissCallback: (value) {
+          resetGame();
+        },
         context: context,
         dialogType: DialogType.infoReverse,
         animType: AnimType.bottomSlide,
@@ -419,6 +420,9 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     }
     AwesomeDialog(
       context: context,
+      onDismissCallback: (value) {
+        resetGame();
+      },
       dialogType: who == 'You Won' ? DialogType.success : DialogType.error,
       animType: AnimType.bottomSlide,
       title: '$who!',
@@ -440,13 +444,11 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       },
     ).show();
   }
-
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
   }
-
   Future<bool> onWillPop(BuildContext context) async {
     final result = await showDialog(
       context: context,
@@ -530,7 +532,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     }
     return _updateConnectionStatus(result);
   }
-
   Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
     setState(() {
       _connectionStatus = result;
@@ -539,7 +540,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     print('Connectivity changed: $_connectionStatus');
   }
 }
-
 class CustomAlertDialog extends StatelessWidget {
   final Widget title;
   final Widget content;

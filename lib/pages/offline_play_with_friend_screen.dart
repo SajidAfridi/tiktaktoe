@@ -20,6 +20,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
   late bool isPlayer1;
+  bool isAvailableToMakeMove = true;
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xff3c0384),
+        backgroundColor: const Color(0xff3c0384).withOpacity(0.5),
         body: Center(
           child: Column(
             children: [
@@ -123,7 +124,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 20.sp,
-                      fontFamily: 'PermanentMarker',
+                      // fontFamily: 'PermanentMarker',
                     ),
                   ),
                 ),
@@ -138,17 +139,20 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     return GestureDetector(
       onTap: () {
-        if (cellValue.isEmpty) {
-          setState(() {
-            if (isPlayer1) {
-              gameBoard[rowIndex][colIndex] = 'X';
-            } else {
-              gameBoard[rowIndex][colIndex] = 'O';
+        if(isAvailableToMakeMove)
+          {
+            if (cellValue.isEmpty) {
+              setState(() {
+                if (isPlayer1) {
+                  gameBoard[rowIndex][colIndex] = 'X';
+                } else {
+                  gameBoard[rowIndex][colIndex] = 'O';
+                }
+                isPlayer1 = !isPlayer1;
+              });
             }
-            isPlayer1 = !isPlayer1;
-          });
-        }
         checkWin();
+          }
       },
       child: Card(child: iconDecider(cellValue)),
     );
@@ -248,6 +252,9 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
       String who = winner == 'X' ? 'Player 1' : 'Player 2';
       AwesomeDialog(
           context: context,
+          onDismissCallback: (value) {
+            isAvailableToMakeMove = false;
+          },
           dialogType: DialogType.success,
           animType: AnimType.bottomSlide,
           title: '$who Won!',
@@ -259,6 +266,9 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     } else if (isBoardFull()) {
       AwesomeDialog(
           context: context,
+          onDismissCallback: (value) {
+            isAvailableToMakeMove = false;
+          },
           dialogType: DialogType.warning,
           animType: AnimType.bottomSlide,
           title: 'Draw',
@@ -290,6 +300,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     setState(() {
       initializeBoard();
       isPlayer1 = true;
+      isAvailableToMakeMove = true;
     });
   }
 }

@@ -28,6 +28,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late List<List<String>> gameBoard;
   late bool isPlayer1;
   bool isProcessingMove = false;
+  bool isMoveAvailable = true;
 
   @override
   void initState() {
@@ -123,20 +124,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     return GestureDetector(
       onTap: () {
-        if (cellValue.isEmpty && !isProcessingMove) {
-          setState(() {
-            isProcessingMove = true;
-            if (isPlayer1) {
-              gameBoard[rowIndex][colIndex] = 'X';
-              isPlayer1 = false;
+        if(isMoveAvailable){
+          if (cellValue.isEmpty && !isProcessingMove) {
+            setState(() {
+              isProcessingMove = true;
+              if (isPlayer1) {
+                gameBoard[rowIndex][colIndex] = 'X';
+                isPlayer1 = false;
+              }
+            });
+            if (isBoardFull()) {
+              checkWin();
             }
-          });
-          if (isBoardFull()) {
-            checkWin();
+            aiMove();
           }
-          aiMove();
+          checkWin();
         }
-        checkWin();
       },
       child: Card(child: iconDecider(cellValue)),
     );
@@ -235,6 +238,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (winner.isNotEmpty) {
       String who = winner == 'X' ? 'You' : 'AI';
       AwesomeDialog(
+        onDismissCallback: (value) {
+          setState(() {
+            isMoveAvailable = false;
+          });
+        },
           context: context,
           dialogType: DialogType.success,
           animType: AnimType.bottomSlide,
@@ -246,6 +254,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           }).show();
     } else if (isBoardFull()) {
       AwesomeDialog(
+          onDismissCallback: (value) {
+            setState(() {
+              isMoveAvailable = false;
+            });
+          },
           context: context,
           dialogType: DialogType.warning,
           animType: AnimType.bottomSlide,
@@ -279,6 +292,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       initializeBoard();
       isPlayer1 = true;
       isProcessingMove = false;
+      isMoveAvailable = true;
     });
   }
 
@@ -399,7 +413,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isPlayer1 = true;
     }
   }
-
   int minimax(List<List<String>> board, int depth, bool isMaximizing) {
     int score = evaluate(board);
     if (score == 10) {
@@ -440,7 +453,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return bestScore;
     }
   }
-
   int evaluate(List<List<String>> board) {
     for (int row = 0; row < 3; row++) {
       if (board[row][0] == board[row][1] && board[row][1] == board[row][2]) {
@@ -480,7 +492,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return 0;
   }
-
   bool isMovesLeft() {
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
