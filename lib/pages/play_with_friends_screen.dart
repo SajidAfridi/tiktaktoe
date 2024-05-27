@@ -41,7 +41,6 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
   bool isAvailableToMakeMove = true;
 
-
   @override
   void initState() {
     super.initState();
@@ -65,24 +64,21 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            elevation: 0,
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            duration: const Duration(milliseconds: 1000),
-            content: AwesomeSnackbarContent(
-              titleFontSize: 22.sp,
-              messageFontSize: 18.sp,
-              title: 'Opponent Join the room!',
-              message:
-              'You can now start the game.',
-              contentType: ContentType.success,
-              // to configure for material banner
-              inMaterialBanner: true,
-            ),
-          )
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        duration: const Duration(milliseconds: 1000),
+        content: AwesomeSnackbarContent(
+          titleFontSize: 22.sp,
+          messageFontSize: 18.sp,
+          title: 'Opponent Join the room!',
+          message: 'You can now start the game.',
+          contentType: ContentType.success,
+          // to configure for material banner
+          inMaterialBanner: true,
+        ),
+      ));
     });
     socket.on('OpponentLeft', (_) {
       print('Opponent left the room');
@@ -95,15 +91,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
           titleFontSize: 22.sp,
           messageFontSize: 18.sp,
           title: 'Opponent exited the room!',
-          message:
-          'You will be navigated back to the home screen',
+          message: 'You will be navigated back to the home screen',
           contentType: ContentType.warning,
           // to configure for material banner
           inMaterialBanner: true,
         ),
       );
-      ScaffoldMessenger.of(context)
-        .hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context)
           .showSnackBar(materialBanner)
           .closed
@@ -112,7 +106,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const CreateOrJoinScreen()),
-              (route) => false,
+          (route) => false,
         );
       });
     });
@@ -150,6 +144,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         onWillPop(context);
       },
       child: Scaffold(
+        backgroundColor: const Color(0xff3c0384).withOpacity(1),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -186,23 +181,24 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                 builder: (context, snapshot) {
                   String whoseTurn = '';
                   if (snapshot.data == null) {
-                    return isLoading&&widget.isHost?
-                    const Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Waiting for Opponent...'),
-                          SizedBox(width: 10.0),
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation(Colors.blueAccent),
-                          ),
-                        ],
-                      ),
-                    )
-                        :TurnIndicator(
-                        turnMessage: widget.isHost
-                            ? 'Your\'s Turn'
-                            : 'Opponent\'s Turn');
+                    return isLoading && widget.isHost
+                        ? const Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Waiting for Opponent...'),
+                                SizedBox(width: 10.0),
+                                CircularProgressIndicator(
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.blueAccent),
+                                ),
+                              ],
+                            ),
+                          )
+                        : TurnIndicator(
+                            turnMessage: widget.isHost
+                                ? 'Your\'s Turn'
+                                : 'Opponent\'s Turn');
                   }
                   if (snapshot.hasData) {
                     whoseTurn = 'Your\'s turn';
@@ -267,22 +263,23 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       multiplayerService.sendMove(widget.room.code, newMovement);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            elevation: 0,
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            duration: const Duration(milliseconds: 1000),
-            content: AwesomeSnackbarContent(
-              titleFontSize: 22.sp,
-              messageFontSize: 18.sp,
-              title: 'Invalid Move',
-              message:
-              'This cell is already occupied. Please select another cell.',
-              contentType: ContentType.failure,
-              // to configure for material banner
-              inMaterialBanner: true,
-            ),
-          ));
+        SnackBar(
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          duration: const Duration(milliseconds: 1000),
+          content: AwesomeSnackbarContent(
+            titleFontSize: 22.sp,
+            messageFontSize: 18.sp,
+            title: 'Invalid Move',
+            message:
+                'This cell is already occupied. Please select another cell.',
+            contentType: ContentType.failure,
+            // to configure for material banner
+            inMaterialBanner: true,
+          ),
+        ),
+      );
     }
   }
 
@@ -290,13 +287,14 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     final symbol = gameBoard[rowIndex][colIndex];
     return GestureDetector(
       onTap: () {
-        if(isAvailableToMakeMove){
+        if (isAvailableToMakeMove) {
           _handleTap('$rowIndex,$colIndex');
         }
       },
       child: Card(child: iconDecider(symbol)),
     );
   }
+
   Widget iconDecider(String symbol) {
     if (symbol == 'X') {
       return FadeOutUp(
@@ -341,6 +339,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     }
   }
+
   Widget buildGameBoard(List<List<String>> gameBoard) {
     return Container(
       decoration: BoxDecoration(
@@ -366,6 +365,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       ),
     );
   }
+
   void updateGameBoard(Room room) {
     setState(() {
       //along the gameBoard we will also update the turn
@@ -381,6 +381,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       );
     });
   }
+
   void checkWin(String winner) {
     String symbol =
         widget.isHost ? 'X' : 'O'; // Assuming 'X' for host and 'O' for opponent
@@ -444,11 +445,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
       },
     ).show();
   }
+
   void resetGame() {
     final multiplayerService =
         Provider.of<MultiplayerService>(context, listen: false);
     multiplayerService.resetGame(widget.room.code);
   }
+
   Future<bool> onWillPop(BuildContext context) async {
     final result = await showDialog(
       context: context,
@@ -514,6 +517,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     );
     return result ?? false;
   }
+
   Future<void> initConnectivity() async {
     late List<ConnectivityResult> result;
     // Platform messages may fail, so we use a try/catch PlatformException.
@@ -532,6 +536,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     }
     return _updateConnectionStatus(result);
   }
+
   Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
     setState(() {
       _connectionStatus = result;
@@ -540,6 +545,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     print('Connectivity changed: $_connectionStatus');
   }
 }
+
 class CustomAlertDialog extends StatelessWidget {
   final Widget title;
   final Widget content;
