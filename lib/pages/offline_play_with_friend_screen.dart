@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:action_slider/action_slider.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../classes/one_tap_register_class.dart';
+import '../constants/colors.dart';
+import '../widgets/grid_icon_decider.dart';
 import '../widgets/turn_indicator_widget.dart';
 import '../widgets/who_vs_who_widget.dart';
 
@@ -74,7 +75,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12.r),
-                  color: const Color(0xff4ffaff),
+                  color: gridContainerBackgroundColor,
                 ),
                 padding: const EdgeInsets.all(4),
                 child: OnlyOnePointerRecognizerWidget(
@@ -105,7 +106,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                 width: MediaQuery.of(context).size.width * 0.70,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30.r),
-                  color: Colors.white,
+                  color: toggleBackgroundColor,
                 ),
                 child: ActionSlider.standard(
                   action: (controller) {
@@ -118,7 +119,7 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
                     color: Colors.white,
                     size: 30.sp,
                   ),
-                  toggleColor: const Color(0xff3c0384),
+                  toggleColor: toggleColor,
                   child: Text(
                     'Slide to reset',
                     style: TextStyle(
@@ -156,52 +157,6 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
       },
       child: Card(child: iconDecider(cellValue)),
     );
-  }
-
-  Widget iconDecider(String value) {
-    //bool isWinningMove = value.endsWith('_win');
-    if (value.replaceAll('_win', '') == 'X') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            color: Colors.blue,
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/cross.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else if (value.replaceAll('_win', '') == 'O') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/circle_1.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xff2e0266),
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: const Center(child: Text('')),
-        ),
-      );
-    }
   }
 
   void checkWin() {
@@ -278,13 +233,11 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
           }).show();
     }
   }
-
   void animateWin(int row1, int col1, int row2, int col2, int row3, int col3) {
     gameBoard[row1][col1] += '_win';
     gameBoard[row2][col2] += '_win';
     gameBoard[row3][col3] += '_win';
   }
-
   bool isBoardFull() {
     for (var row in gameBoard) {
       for (var cell in row) {
@@ -295,7 +248,6 @@ class _YouVsFriendScreenState extends State<YouVsFriendScreen>
     }
     return true;
   }
-
   void resetGame() {
     setState(() {
       initializeBoard();

@@ -1,11 +1,12 @@
 import 'package:action_slider/action_slider.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tiktaktoe/classes/game_logic.dart';
 import 'dart:math';
 import '../classes/one_tap_register_class.dart';
+import '../constants/colors.dart';
+import '../widgets/grid_icon_decider.dart';
 import '../widgets/who_vs_who_widget.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -52,23 +53,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: scaffoldBackGroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 16.h),
-            const RoundInfoWidget(isHost: true,),
             SizedBox(
-              height: 16.h,
+              height: 30.h,
+            ),
+            const RoundInfoWidget(
+              isHost: true,
+            ),
+            SizedBox(
+              height: 80.h,
             ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12.r),
-                color: Colors.white,
+                color: gridContainerBackgroundColor,
               ),
               padding: const EdgeInsets.all(4),
               child: OnlyOnePointerRecognizerWidget(
                 child: GridView.builder(
+                  padding: EdgeInsets.all(6.r),
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -87,44 +94,44 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
             ),
             SizedBox(
-              height: 30.h,
+              height: 80.h,
             ),
             Container(
-                width: MediaQuery.of(context).size.width * 0.70,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30.r),
+              width: MediaQuery.of(context).size.width * 0.70,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30.r),
+                color: toggleBackgroundColor,
+              ),
+              child: ActionSlider.standard(
+                action: (controller) {
+                  controller.reset();
+                  resetGame();
+                },
+                icon: Icon(
+                  Icons.refresh,
                   color: Colors.white,
+                  size: 30.r,
                 ),
-                child: ActionSlider.standard(
-                  action: (controller) {
-                    controller.reset();
-                    resetGame();
-                  },
-                  icon: Icon(
-                    Icons.refresh,
-                    color: Colors.white,
-                    size: 30.r,
+                toggleColor: toggleColor,
+                child: Text(
+                  'Reset Game',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 24.sp,
+                    fontFamily: 'PermanentMarker',
                   ),
-                  toggleColor: Colors.blue,
-                  child: Text(
-                    'Reset Game',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24.sp,
-                      fontFamily: 'PermanentMarker',
-                    ),
-                  ),
-                )),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
   Widget buildGridCell(int rowIndex, int colIndex, String cellValue) {
     return GestureDetector(
       onTap: () {
-        if(isMoveAvailable){
+        if (isMoveAvailable) {
           if (cellValue.isEmpty && !isProcessingMove) {
             setState(() {
               isProcessingMove = true;
@@ -144,53 +151,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       child: Card(child: iconDecider(cellValue)),
     );
   }
-
-  Widget iconDecider(String value) {
-    //bool isWinningMove = value.endsWith('_win');
-    if (value.replaceAll('_win', '') == 'X') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            color: Colors.green,
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/cross.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else if (value.replaceAll('_win', '') == 'O') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/circle_1.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: const Center(child: Text('')),
-        ),
-      );
-    }
-  }
-
   void checkWin() {
     String winner = '';
     if (gameBoard[0][0] == gameBoard[0][1] &&
@@ -238,11 +198,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (winner.isNotEmpty) {
       String who = winner == 'X' ? 'You' : 'AI';
       AwesomeDialog(
-        onDismissCallback: (value) {
-          setState(() {
-            isMoveAvailable = false;
-          });
-        },
+          onDismissCallback: (value) {
+            setState(() {
+              isMoveAvailable = false;
+            });
+          },
           context: context,
           dialogType: DialogType.success,
           animType: AnimType.bottomSlide,
@@ -269,13 +229,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           }).show();
     }
   }
-
   void animateWin(int row1, int col1, int row2, int col2, int row3, int col3) {
     gameBoard[row1][col1] += '_win';
     gameBoard[row2][col2] += '_win';
     gameBoard[row3][col3] += '_win';
   }
-
   bool isBoardFull() {
     for (var row in gameBoard) {
       for (var cell in row) {
@@ -286,7 +244,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     return true;
   }
-
   void resetGame() {
     setState(() {
       initializeBoard();
@@ -295,7 +252,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isMoveAvailable = true;
     });
   }
-
   aiMove() {
     int countEmptyCells() {
       int count = 0;
@@ -344,7 +300,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int row = move ~/ 3;
         int col = move % 3;
         gameBoard[row][col] = 'O';
-        if (GameLogic().checkWinningMove(gameBoard, 'O',)) {
+        if (GameLogic().checkWinningMove(
+          gameBoard,
+          'O',
+        )) {
           isPlayer1 = true;
           return;
         }

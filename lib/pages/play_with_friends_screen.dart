@@ -8,12 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:tiktaktoe/classes/online_player_class.dart';
+import 'package:tiktaktoe/constants/colors.dart';
 import 'package:tiktaktoe/pages/join_or_create_screen.dart';
 import 'package:tiktaktoe/pages/welcome_and_difficulty_selection_screen.dart';
 import '../classes/game_logic.dart';
 import '../classes/multiplayer_service.dart';
 import '../classes/one_tap_register_class.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../widgets/grid_icon_decider.dart';
 import '../widgets/turn_indicator_widget.dart';
 import '../widgets/who_vs_who_widget.dart';
 
@@ -144,7 +146,7 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
         onWillPop(context);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xff3c0384).withOpacity(1),
+        backgroundColor: scaffoldBackGroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -169,12 +171,13 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                       'Room Code: ${widget.room.code}',
                       style: TextStyle(
                         fontSize: 30.sp,
+                        color: Colors.white,
                         fontWeight: FontWeight.normal,
                       ),
                     ),
                   ),
                 ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 20.h),
               //stream builder with the stream from the provider
               StreamBuilder<Room>(
                 stream: roomUpdates,
@@ -182,16 +185,22 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
                   String whoseTurn = '';
                   if (snapshot.data == null) {
                     return isLoading && widget.isHost
-                        ? const Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                        ? Center(
+                            child: Column(
                               children: [
-                                Text('Waiting for Opponent...'),
-                                SizedBox(width: 10.0),
-                                CircularProgressIndicator(
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.blueAccent),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Waiting for Opponent...',style: TextStyle(color: Colors.white,fontSize: 16.sp),),
+                                    SizedBox(width: 20.0.w,height: 20.h,),
+                                    const CircularProgressIndicator(
+                                      backgroundColor: Colors.white,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.blueAccent),
+                                    ),
+                                  ],
                                 ),
+                                SizedBox(height: 20.h),
                               ],
                             ),
                           )
@@ -220,11 +229,12 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12.r),
-                  color: Colors.white,
+                  color: gridContainerBackgroundColor,
                 ),
                 padding: EdgeInsets.all(4.r),
                 child: OnlyOnePointerRecognizerWidget(
                   child: GridView.builder(
+                    padding: EdgeInsets.all(6.r),
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
@@ -295,50 +305,50 @@ class _MultiplayerScreenState extends State<MultiplayerScreen> {
     );
   }
 
-  Widget iconDecider(String symbol) {
-    if (symbol == 'X') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            color: Colors.green,
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/cross.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else if (symbol == 'O') {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: Image.asset(
-            'assets/images/circle_1.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      return FadeOutUp(
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15.r),
-            boxShadow: const [],
-          ),
-          child: const Center(child: Text('')),
-        ),
-      );
-    }
-  }
+  // Widget iconDecider(String symbol) {
+  //   if (symbol == 'X') {
+  //     return FadeOutUp(
+  //       duration: const Duration(milliseconds: 300),
+  //       child: Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(15.r),
+  //           color: Colors.green,
+  //           boxShadow: const [],
+  //         ),
+  //         child: Image.asset(
+  //           'assets/images/cross.png',
+  //           fit: BoxFit.cover,
+  //         ),
+  //       ),
+  //     );
+  //   } else if (symbol == 'O') {
+  //     return FadeOutUp(
+  //       duration: const Duration(milliseconds: 300),
+  //       child: Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(15.r),
+  //           boxShadow: const [],
+  //         ),
+  //         child: Image.asset(
+  //           'assets/images/circle_1.png',
+  //           fit: BoxFit.cover,
+  //         ),
+  //       ),
+  //     );
+  //   } else {
+  //     return FadeOutUp(
+  //       duration: const Duration(milliseconds: 300),
+  //       child: Container(
+  //         decoration: BoxDecoration(
+  //           color: Colors.grey[300],
+  //           borderRadius: BorderRadius.circular(15.r),
+  //           boxShadow: const [],
+  //         ),
+  //         child: const Center(child: Text('')),
+  //       ),
+  //     );
+  //   }
+  // }
 
   Widget buildGameBoard(List<List<String>> gameBoard) {
     return Container(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../constants/colors.dart';
+
 class TurnIndicator extends StatefulWidget {
   final String turnMessage;
 
@@ -25,12 +27,12 @@ class _TurnIndicatorState extends State<TurnIndicator>
       ..repeat(reverse: true);
 
     _colorAnimation = ColorTween(
-      begin: const Color(0xffe773ff),
-      end: const Color(0xffe773ff).withOpacity(0.6),
+      begin: primaryColor,
+      end: primaryColor.withOpacity(0.6),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _colorAnimation2 = ColorTween(
-      begin: const Color(0xfff9d967),
-      end: const Color(0xfff9d967).withOpacity(0.7),
+      begin: secondaryColor,
+      end: secondaryColor.withOpacity(0.7),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -45,12 +47,12 @@ class _TurnIndicatorState extends State<TurnIndicator>
     super.didUpdateWidget(oldWidget);
     if (widget.turnMessage != oldWidget.turnMessage) {
       _colorAnimation = ColorTween(
-        begin: const Color(0xffD001FE),
-        end: const Color(0xffD001FE),
+        begin: primaryColor,
+        end: primaryColor.withOpacity(0.6),
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
       _colorAnimation2 = ColorTween(
-        begin: const Color(0xffFECB01),
-        end: const Color(0xffFECB01),
+        begin: secondaryColor,
+        end: secondaryColor.withOpacity(0.6),
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     }
   }
